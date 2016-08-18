@@ -19,8 +19,7 @@ public class BlipApplication extends Application {
         super.onCreate();
         mAppComponent = DaggerAppComponent.builder()
                 .appModule(new AppModule(this))
-                .backendModule(new BackendModule(getResources().getString(R.string.parse_url),
-                        getResources().getString(R.string.parse_app_id), this))
+                .backendModule(new BackendModule(this))
                 .build();
     }
 

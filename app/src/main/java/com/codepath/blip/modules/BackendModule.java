@@ -18,8 +18,8 @@ import dagger.Provides;
 public class BackendModule {
     BackendClient mBackendClient;
 
-    public BackendModule(String parseUrl, String parseAppId, Context applicationContext) {
-        mBackendClient = new BackendClient(parseUrl, parseAppId, applicationContext);
+    public BackendModule(Context applicationContext) {
+        mBackendClient = new BackendClient(applicationContext);
     }
 
     @Provides

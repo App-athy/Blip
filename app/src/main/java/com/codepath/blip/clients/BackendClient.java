@@ -2,6 +2,7 @@ package com.codepath.blip.clients;
 
 import android.content.Context;
 
+import com.codepath.blip.R;
 import com.parse.Parse;
 import com.parse.ParseException;
 import com.parse.ParseObject;
@@ -17,11 +18,11 @@ import rx.schedulers.Schedulers;
  * Date: 8/17/16
  */
 public class BackendClient {
-    public BackendClient(String parseUrl, String parseAppId, Context context) {
-        Parse.initialize(new Parse.Configuration.Builder(context)
-                .applicationId(parseAppId)
+    public BackendClient(Context applicationContext) {
+        Parse.initialize(new Parse.Configuration.Builder(applicationContext)
+                .applicationId(applicationContext.getResources().getString(R.string.parse_app_id))
                 .addNetworkInterceptor(new ParseLogInterceptor())
-                .server(parseUrl).build());
+                .server(applicationContext.getResources().getString(R.string.parse_url)).build());
     }
 
     /**
