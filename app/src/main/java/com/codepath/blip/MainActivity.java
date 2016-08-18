@@ -23,6 +23,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         ((BlipApplication) getApplication()).getAppComponent().inject(this);
         setContentView(R.layout.activity_main);
+        tempBackendMethod();
+    }
+
+    /**
+     * Temp method showing how to interact with Rx and the backend client.
+     */
+    private void tempBackendMethod() {
         mBackendClient.postTestObjectToParse("Test", "Person", "Male").observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Subscriber<ParseObject>() {
                     @Override
