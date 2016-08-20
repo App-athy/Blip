@@ -7,7 +7,10 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.codepath.blip.clients.BackendClient;
+import com.codepath.blip.models.Blip;
 import com.parse.ParseObject;
+
+import java.util.List;
 
 import javax.inject.Inject;
 
@@ -23,7 +26,39 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         ((BlipApplication) getApplication()).getAppComponent().inject(this);
         setContentView(R.layout.activity_main);
-        tempBackendMethod();
+
+        // Demo saving objects to Parse
+         tempBackendMethod();
+
+        // Demo receiving Blips via Behavior Subject
+        tempListenForBlipsMethod();
+        mBackendClient.updateBlips();
+    }
+
+    /**
+     * Temp method showing how to listen to Blips from a BehaviorSubject.
+     * Note that unlike cold observables, a BehaviorSubject doesn't do anything special when something subscribes.
+     * It's contents are updated independently.
+     */
+    private void tempListenForBlipsMethod() {
+        mBackendClient.getNearbyBlipsSubject().observeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<List<Blip>>() {
+            @Override
+            public void onCompleted() {
+                // Nothing
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.e("Error", "Something went horribly wrong while getting nearby Blips", e);
+            }
+
+            @Override
+            public void onNext(List<Blip> blips) {
+                if (blips != null) {
+                    Toast.makeText(MainActivity.this, "Got a list of nearby Blips!", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
     }
 
     /**
