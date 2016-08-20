@@ -1,13 +1,26 @@
 package com.codepath.blip;
 
+import android.Manifest;
 import android.app.Application;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.codepath.blip.clients.BackendClient;
 import com.codepath.blip.models.Blip;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
 import com.parse.ParseObject;
 
 import java.util.List;
@@ -17,9 +30,14 @@ import javax.inject.Inject;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 
-public class MainActivity extends AppCompatActivity {
+
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
     @Inject Application mApplication;
     @Inject BackendClient mBackendClient;
+
+    private GoogleMap mMap;
+    private GoogleApiClient mClient;
+    private final int MY_LOCATION_REQUEST_CODE = 101;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,12 +45,68 @@ public class MainActivity extends AppCompatActivity {
         ((BlipApplication) getApplication()).getAppComponent().inject(this);
         setContentView(R.layout.activity_main);
 
+        // Set up map
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+
         // Demo saving objects to Parse
          tempBackendMethod();
 
         // Demo receiving Blips via Behavior Subject
         tempListenForBlipsMethod();
         mBackendClient.updateBlips();
+
+        MoveToLocationFirstTime move = new MoveToLocationFirstTime(savedInstanceState);
+        mClient = getGoogleApiClient();
+        if (mClient != null) {
+            mClient.connect();
+        }
+        addConnectionCallbacks(mClient, new OnClient(mClient, move));
+    }
+
+    private GoogleApiClient getGoogleApiClient() {
+        return new GoogleApiClient.Builder(this).addApi(LocationServices.API).build();
+    }
+
+    private void addConnectionCallbacks(GoogleApiClient client, GoogleApiClient.ConnectionCallbacks callbacks) {
+        client.registerConnectionCallbacks(callbacks);
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            mMap.setMyLocationEnabled(true);
+            moveToUserLocation(mClient, mMap);
+        } else {
+            String permission = Manifest.permission.ACCESS_FINE_LOCATION;
+            ActivityCompat.requestPermissions(this, new String[]{permission}, MY_LOCATION_REQUEST_CODE);
+        }
+    }
+
+    @SuppressWarnings("MissingPermission")
+    private void moveToUserLocation(GoogleApiClient client, GoogleMap map) {
+        Location last = LocationServices.FusedLocationApi.getLastLocation(client);
+        Toast.makeText(this, "last location" + last, Toast.LENGTH_LONG).show();
+        if (last != null) {
+            LatLng latLng = new LatLng(last.getLatitude(), last.getLongitude());
+            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 18);
+            map.animateCamera(cameraUpdate);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            mMap.setMyLocationEnabled(true);
+//            moveToUserLocation(mClient, mMap);
+        } else {
+            Log.e("Error", "Location permission denied");
+        }
     }
 
     /**
