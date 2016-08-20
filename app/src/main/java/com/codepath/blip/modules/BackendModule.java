@@ -1,6 +1,8 @@
 package com.codepath.blip.modules;
 
-import com.codepath.blip.BackendClient;
+import android.content.Context;
+
+import com.codepath.blip.clients.BackendClient;
 
 import javax.inject.Singleton;
 
@@ -16,8 +18,8 @@ import dagger.Provides;
 public class BackendModule {
     BackendClient mBackendClient;
 
-    public BackendModule(String fakeConfig) {
-        mBackendClient = new BackendClient(fakeConfig);
+    public BackendModule(Context applicationContext) {
+        mBackendClient = new BackendClient(applicationContext);
     }
 
     @Provides
