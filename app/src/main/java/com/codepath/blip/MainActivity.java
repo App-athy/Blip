@@ -13,13 +13,17 @@ import android.widget.Toast;
 
 import com.codepath.blip.clients.BackendClient;
 import com.codepath.blip.models.Blip;
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.parse.ParseObject;
 
@@ -31,10 +35,14 @@ import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements
+        OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, LocationListener, GoogleApiClient.OnConnectionFailedListener {
     @Inject Application mApplication;
     @Inject BackendClient mBackendClient;
 
+
+    private LocationRequest mLocationRequest;
+    private LatLng mLatLng;
     private GoogleMap mMap;
     private GoogleApiClient mClient;
     private final int MY_LOCATION_REQUEST_CODE = 101;
@@ -56,21 +64,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Demo receiving Blips via Behavior Subject
         tempListenForBlipsMethod();
         mBackendClient.updateBlips();
-
-        MoveToLocationFirstTime move = new MoveToLocationFirstTime(savedInstanceState);
-        mClient = getGoogleApiClient();
-        if (mClient != null) {
-            mClient.connect();
-        }
-        addConnectionCallbacks(mClient, new OnClient(mClient, move));
     }
 
     private GoogleApiClient getGoogleApiClient() {
-        return new GoogleApiClient.Builder(this).addApi(LocationServices.API).build();
-    }
-
-    private void addConnectionCallbacks(GoogleApiClient client, GoogleApiClient.ConnectionCallbacks callbacks) {
-        client.registerConnectionCallbacks(callbacks);
+        return new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API).build();
     }
 
     @Override
@@ -80,11 +80,58 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
-            moveToUserLocation(mClient, mMap);
         } else {
             String permission = Manifest.permission.ACCESS_FINE_LOCATION;
             ActivityCompat.requestPermissions(this, new String[]{permission}, MY_LOCATION_REQUEST_CODE);
         }
+
+        mClient = getGoogleApiClient();
+
+        if (mClient != null) {
+            mClient.connect();
+        }
+    }
+
+    @SuppressWarnings("MissingPermission")
+    @Override
+    public void onConnected(Bundle bundle) {
+        Toast.makeText(this,"onConnected",Toast.LENGTH_SHORT).show();
+        Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mClient);
+
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(15000); // 15 seconds
+        mLocationRequest.setFastestInterval(10000); // 10 seconds
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        //mLocationRequest.setSmallestDisplacement(0.1F); //1/10 meter
+
+        LocationServices.FusedLocationApi.requestLocationUpdates(mClient, mLocationRequest, this);
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        mLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+        //zoom to current position:
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(mLatLng).zoom(17).build();
+
+        mMap.animateCamera(CameraUpdateFactory
+                .newCameraPosition(cameraPosition));
+
+        // unregister the listener after first location for now, do moving location later
+        LocationServices.FusedLocationApi.removeLocationUpdates(mClient, this);
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        Toast.makeText(this,"onConnectionSuspended",Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        Toast.makeText(this,"onConnectionFailed",Toast.LENGTH_SHORT).show();
     }
 
     @SuppressWarnings("MissingPermission")
@@ -103,7 +150,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
-//            moveToUserLocation(mClient, mMap);
         } else {
             Log.e("Error", "Location permission denied");
         }
