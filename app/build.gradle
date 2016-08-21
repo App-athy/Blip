@@ -32,4 +32,6 @@ dependencies {
     compile 'com.parse.bolts:bolts-android:1.4.0' // Parse Async (from codepath guide) - might be able to remove b/c Rx
     compile 'com.parse:parse-android:1.13.1' // Parse SDK
     compile 'com.parse:parseinterceptors:0.0.2' // for logging API calls to LogCat
+    compile 'com.android.support:design:24.0.0' //To use the RecyclerView
+    compile 'com.squareup.picasso:picasso:2.5.2' //Picasso
 }
