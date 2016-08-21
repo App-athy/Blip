@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/upvoteButton"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:src="@android:drawable/arrow_up_float"/>
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/downvoteButton"
+        android:src="@android:drawable/arrow_down_float"
+        android:layout_below="@+id/tvUpvotes"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"/>
+
+    <TextView
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:text="23"
+        android:id="@+id/tvUpvotes"
+        android:layout_below="@+id/upvoteButton"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignRight="@+id/upvoteButton"
+        android:layout_alignEnd="@+id/upvoteButton"
+        android:gravity="center"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:id="@+id/tvBlipBody"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/upvoteButton"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginBottom="2dp"
+        android:maxHeight="100dp"
+        />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="200dp"
+        android:id="@+id/blipImageView"
+        android:layout_below="@+id/tvBlipBody"
+        android:layout_toRightOf="@+id/upvoteButton"
+        android:layout_alignRight="@+id/tvBlipBody"
+        android:layout_alignEnd="@+id/tvBlipBody"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:src="@android:drawable/stat_sys_warning"/>
+
+</RelativeLayout>
