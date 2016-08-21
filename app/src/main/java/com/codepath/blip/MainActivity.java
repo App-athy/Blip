@@ -18,7 +18,6 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -26,6 +25,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.maps.android.clustering.ClusterManager;
 import com.parse.ParseObject;
 
 import java.util.List;
@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements
     @Inject BackendClient mBackendClient;
 
 
+    private ClusterManager<Blip> mClusterManager;
     private LocationRequest mLocationRequest;
     private LatLng mLatLng;
     private GoogleMap mMap;
@@ -78,10 +79,11 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        // Set up default map view preferences
         mMap = googleMap;
         mMap.setMinZoomPreference(17.0f);
-        mMap.setMaxZoomPreference(17.0f);
-        
+
+        // Make sure location is enabled
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
@@ -90,11 +92,23 @@ public class MainActivity extends AppCompatActivity implements
             ActivityCompat.requestPermissions(this, new String[]{permission}, MY_LOCATION_REQUEST_CODE);
         }
 
+        // Set up client for my location
         mClient = getGoogleApiClient();
 
         if (mClient != null) {
             mClient.connect();
         }
+
+        // Initialize the manager with the context and the map.
+        // (Activity extends context, so we can pass 'this' in the constructor.)
+        mClusterManager = new ClusterManager<Blip>(this, mMap);
+
+        // Point the map's listeners at the listeners implemented by the cluster
+        // manager.
+        mMap.setOnMarkerClickListener(mClusterManager);
+
+        // Add cluster items (markers) to the cluster manager.
+        addItems();
     }
 
     @SuppressWarnings("MissingPermission")
@@ -151,17 +165,6 @@ public class MainActivity extends AppCompatActivity implements
         Toast.makeText(this,"onConnectionFailed",Toast.LENGTH_SHORT).show();
     }
 
-    @SuppressWarnings("MissingPermission")
-    private void moveToUserLocation(GoogleApiClient client, GoogleMap map) {
-        Location last = LocationServices.FusedLocationApi.getLastLocation(client);
-        Toast.makeText(this, "last location" + last, Toast.LENGTH_LONG).show();
-        if (last != null) {
-            LatLng latLng = new LatLng(last.getLatitude(), last.getLongitude());
-            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 18);
-            map.animateCamera(cameraUpdate);
-        }
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -192,7 +195,11 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onNext(List<Blip> blips) {
                 if (blips != null) {
-                    System.out.println("blip loc: " + blips.get(0).getLocation());
+
+                    // uncomment when there is real location data
+//                    for (Blip blip : blips) {
+//                        mClusterManager.addItem(blip);
+//                    }
                     Toast.makeText(MainActivity.this, "Got a list of nearby Blips!", Toast.LENGTH_LONG).show();
                 }
             }

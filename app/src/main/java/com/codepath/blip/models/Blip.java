@@ -1,5 +1,7 @@
 package com.codepath.blip.models;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.maps.android.clustering.ClusterItem;
 import com.parse.ParseGeoPoint;
 
 /**
@@ -7,7 +9,7 @@ import com.parse.ParseGeoPoint;
  * Project: Blip
  * Date: 8/20/16
  */
-public class Blip {
+public class Blip implements ClusterItem {
 
     private String pictureUrl;
     private String caption;
@@ -26,6 +28,11 @@ public class Blip {
 
     public ParseGeoPoint getLocation() {
         return location;
+    }
+
+    @Override
+    public LatLng getPosition() {
+        return new LatLng(location.getLatitude(), location.getLongitude());
     }
 
     public int getUpvotes() {
