@@ -25,6 +25,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.parse.ParseObject;
 
 import java.util.List;
@@ -46,6 +47,8 @@ public class MainActivity extends AppCompatActivity implements
     private GoogleMap mMap;
     private GoogleApiClient mClient;
     private final int MY_LOCATION_REQUEST_CODE = 101;
+
+    private boolean didSetMapBounds = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +79,9 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
+        mMap.setMinZoomPreference(17.0f);
+        mMap.setMaxZoomPreference(17.0f);
+        
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
@@ -110,7 +115,10 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public void onLocationChanged(Location location) {
-        mLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+        double lat = location.getLatitude();
+        double lng = location.getLongitude();
+        double boundsEpsilon = 0.001;
+        mLatLng = new LatLng(lat, lng);
 
         //zoom to current position:
         CameraPosition cameraPosition = new CameraPosition.Builder()
@@ -118,6 +126,15 @@ public class MainActivity extends AppCompatActivity implements
 
         mMap.animateCamera(CameraUpdateFactory
                 .newCameraPosition(cameraPosition));
+
+        if (!didSetMapBounds) {
+            LatLngBounds region = new LatLngBounds(
+                    new LatLng(lat - boundsEpsilon, lng - boundsEpsilon),
+                    new LatLng(lat + boundsEpsilon, lng + boundsEpsilon));
+            // Constrain the camera target
+            mMap.setLatLngBoundsForCameraTarget(region);
+            didSetMapBounds = true;
+        }
 
         // unregister the listener after first location for now, do moving location later
         LocationServices.FusedLocationApi.removeLocationUpdates(mClient, this);
@@ -158,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements
     /**
      * Temp method showing how to listen to Blips from a BehaviorSubject.
      * Note that unlike cold observables, a BehaviorSubject doesn't do anything special when something subscribes.
-     * It's contents are updated independently.
+     * Its contents are updated independently.
      */
     private void tempListenForBlipsMethod() {
         mBackendClient.getNearbyBlipsSubject().observeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<List<Blip>>() {
@@ -175,6 +192,7 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onNext(List<Blip> blips) {
                 if (blips != null) {
+                    System.out.println("blip loc: " + blips.get(0).getLocation());
                     Toast.makeText(MainActivity.this, "Got a list of nearby Blips!", Toast.LENGTH_LONG).show();
                 }
             }
