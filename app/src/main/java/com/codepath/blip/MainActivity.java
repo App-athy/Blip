@@ -6,7 +6,10 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+<<<<<<< HEAD
 import android.support.annotation.NonNull;
+=======
+>>>>>>> 991954c321fe0c63d435d3773b706d597e323684
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
