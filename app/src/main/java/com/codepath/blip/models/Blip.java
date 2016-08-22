@@ -11,6 +11,7 @@ import com.parse.ParseGeoPoint;
  */
 public class Blip implements ClusterItem {
 
+    private String uuid;
     private String pictureUrl;
     private String caption;
     private ParseGeoPoint location;
