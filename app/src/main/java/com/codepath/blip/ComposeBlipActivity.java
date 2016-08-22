@@ -64,11 +64,8 @@ public class ComposeBlipActivity extends AppCompatActivity {
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Blip blip = new Blip();
-                blip.setCaption(body.getText().toString());
-                blip.setUpvotes(0);
-                //ParseGeoPoint userLocation = (ParseGeoPoint) userObject.get("location");
-                mBackendClient.postTestObjectToParse("?", "?", blip.getCaption());
+                // This needs to be implemented
+                // Use this -> Blip.createBlip()
             }
         });
     }

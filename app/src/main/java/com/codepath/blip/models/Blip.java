@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.clustering.ClusterItem;
+import com.parse.ParseClassName;
 import com.parse.ParseException;
 import com.parse.ParseFile;
 import com.parse.ParseGeoPoint;
@@ -22,6 +23,8 @@ import rx.schedulers.Schedulers;
  * Project: Blip
  * Date: 8/20/16
  */
+
+@ParseClassName("Blip")
 public class Blip extends ParseObject implements ClusterItem {
     // Keys for object attributes
     private static final String IMAGE_FILE = "IMAGE_FILE";
@@ -30,33 +33,6 @@ public class Blip extends ParseObject implements ClusterItem {
     private static final String USER = "USER";
     private static final String UPVOTE = "UPVOTE";
     private static final String DOWNVOTE = "DOWNVOTE";
-
-    private String uuid;
-    private String pictureUrl;
-    private String caption;
-
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
-    }
-
-    public void setPictureUrl(String pictureUrl) {
-        this.pictureUrl = pictureUrl;
-    }
-
-    public void setCaption(String caption) {
-        this.caption = caption;
-    }
-
-    public void setLocation(ParseGeoPoint location) {
-        this.location = location;
-    }
-
-    public void setUpvotes(int upvotes) {
-        this.upvotes = upvotes;
-    }
-
-    private ParseGeoPoint location;
-    private int upvotes;
 
     /**
      * Default constructor for Parse - Do not remove or modify
@@ -82,7 +58,8 @@ public class Blip extends ParseObject implements ClusterItem {
      * @param image A string of bytes
      * @return An observable which will return a Blip if it was saved, or a ParseException if something went wrong.
      */
-    public rx.Observable<Blip> createBlip(final String caption, @NonNull final LatLng location, @NonNull final byte[] image) {
+    public static rx.Observable<Blip> createBlip(final String caption, @NonNull final LatLng location, @NonNull final
+    byte[] image) {
         return rx.Observable.create(new Observable.OnSubscribe<Blip>() {
             @Override
             public void call(Subscriber<? super Blip> subscriber) {
@@ -139,6 +116,10 @@ public class Blip extends ParseObject implements ClusterItem {
     public LatLng getPosition() {
         ParseGeoPoint geoPoint = (ParseGeoPoint) get(LOCATION);
         return new LatLng(geoPoint.getLatitude(), geoPoint.getLongitude());
+    }
+
+    public String getUuid() {
+        return getObjectId();
     }
 
     public int getScore() {
