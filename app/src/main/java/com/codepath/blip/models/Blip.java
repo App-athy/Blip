@@ -30,7 +30,7 @@ public class Blip extends ParseObject implements ClusterItem {
     private static final String USER = "USER";
     private static final String UPVOTE = "UPVOTE";
     private static final String DOWNVOTE = "DOWNVOTE";
-    
+
     private String uuid;
     private String pictureUrl;
     private String caption;
