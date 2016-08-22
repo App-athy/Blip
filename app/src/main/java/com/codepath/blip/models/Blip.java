@@ -22,6 +22,7 @@ import rx.schedulers.Schedulers;
  * Project: Blip
  * Date: 8/20/16
  */
+<<<<<<< HEAD
 public class Blip extends ParseObject implements ClusterItem {
     // Keys for object attributes
     private static final String IMAGE_FILE = "IMAGE_FILE";
@@ -30,7 +31,37 @@ public class Blip extends ParseObject implements ClusterItem {
     private static final String USER = "USER";
     private static final String UPVOTE = "UPVOTE";
     private static final String DOWNVOTE = "DOWNVOTE";
+    
+=======
+public class Blip implements ClusterItem {
 
+>>>>>>> 991954c321fe0c63d435d3773b706d597e323684
+    private String uuid;
+    private String pictureUrl;
+    private String caption;
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
+    }
+
+    public void setCaption(String caption) {
+        this.caption = caption;
+    }
+
+    public void setLocation(ParseGeoPoint location) {
+        this.location = location;
+    }
+
+    public void setUpvotes(int upvotes) {
+        this.upvotes = upvotes;
+    }
+
+    private ParseGeoPoint location;
+    private int upvotes;
 
     /**
      * Default constructor for Parse - Do not remove or modify
