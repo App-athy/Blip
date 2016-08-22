@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.clustering.ClusterItem;
+import com.parse.ParseClassName;
 import com.parse.ParseException;
 import com.parse.ParseFile;
 import com.parse.ParseGeoPoint;
@@ -22,6 +23,7 @@ import rx.schedulers.Schedulers;
  * Project: Blip
  * Date: 8/20/16
  */
+@ParseClassName("Blip")
 public class Blip extends ParseObject implements ClusterItem {
     // Keys for object attributes
     private static final String IMAGE_FILE = "IMAGE_FILE";
