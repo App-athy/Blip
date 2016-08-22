@@ -34,6 +34,27 @@ public class Blip extends ParseObject implements ClusterItem {
     private String uuid;
     private String pictureUrl;
     private String caption;
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
+    }
+
+    public void setCaption(String caption) {
+        this.caption = caption;
+    }
+
+    public void setLocation(ParseGeoPoint location) {
+        this.location = location;
+    }
+
+    public void setUpvotes(int upvotes) {
+        this.upvotes = upvotes;
+    }
+
     private ParseGeoPoint location;
     private int upvotes;
 
