@@ -2,14 +2,17 @@ package com.codepath.blip;
 
 import android.Manifest;
 import android.app.Application;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import com.codepath.blip.clients.BackendClient;
@@ -69,6 +72,15 @@ public class MainActivity extends AppCompatActivity implements
         // Demo receiving Blips via Behavior Subject
         tempListenForBlipsMethod();
         mBackendClient.updateBlips();
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(MainActivity.this, ComposeBlipActivity.class);
+                startActivityForResult(i, 2);
+            }
+        });
     }
 
     private GoogleApiClient getGoogleApiClient() {
@@ -109,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements
         mMap.setOnMarkerClickListener(mClusterManager);
 
         // Add cluster items (markers) to the cluster manager.
-        addItems();
+        //addItems();
     }
 
     @SuppressWarnings("MissingPermission")
