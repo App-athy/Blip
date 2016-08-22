@@ -32,6 +32,7 @@ public class BackendClient {
      * @param applicationContext Context passed in during app initialization.
      */
     public BackendClient(Context applicationContext) {
+        ParseObject.registerSubclass(Blip.class);
         Parse.initialize(new Parse.Configuration.Builder(applicationContext)
                 .applicationId(applicationContext.getResources().getString(R.string.parse_app_id))
                 .addNetworkInterceptor(new ParseLogInterceptor())

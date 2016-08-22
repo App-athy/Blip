@@ -59,6 +59,7 @@
         android:layout_alignEnd="@+id/tvBlipBody"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
+        android:scaleType="fitCenter"
         android:src="@android:drawable/stat_sys_warning"/>
 
 </RelativeLayout>
