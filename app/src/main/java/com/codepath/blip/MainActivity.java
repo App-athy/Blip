@@ -30,14 +30,12 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.maps.android.clustering.ClusterManager;
-import com.parse.ParseObject;
 
 import java.util.List;
 
 import javax.inject.Inject;
 
 import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
 
 
 public class MainActivity extends AppCompatActivity implements
@@ -67,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements
         mapFragment.getMapAsync(this);
 
         // Demo receiving Blips via Behavior Subject
+        // REMOVE THIS ONCE YOU'RE READY TO ACTUALLY USE BLIPS
         tempListenForBlipsMethod();
         mBackendClient.updateBlips().subscribe(new Subscriber<Boolean>() {
             @Override
@@ -81,7 +80,11 @@ public class MainActivity extends AppCompatActivity implements
 
             @Override
             public void onNext(Boolean aBoolean) {
-                Log.d("DEBUG", "FETCHED");
+                if (aBoolean) {
+                    Toast.makeText(MainActivity.this, "Fetched new Blips!", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "Failed to fetch new Blips!", Toast.LENGTH_LONG).show();
+                }
             }
         });
 

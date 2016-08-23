@@ -1,7 +1,5 @@
 package com.codepath.blip.models;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -15,7 +13,6 @@ import com.parse.ParseUser;
 
 import rx.Observable;
 import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 /**
@@ -87,27 +84,9 @@ public class Blip extends ParseObject implements ClusterItem {
         }).subscribeOn(Schedulers.io());
     }
 
-    /**
-     * Gets the ImageFile from Parse and decodes the bytes into a Bitmap.
-     * Since this is returning an image, I'm assuming that it will always be observed on the Main Thread.
-     * No need to call "oberserveOn(AndroidSchedulers.mainThread())"
-     * @return Bitmap of this Blips image.
-     */
-    public rx.Observable<Bitmap> getImage() {
-        return rx.Observable.create(new Observable.OnSubscribe<Bitmap>() {
-            @Override
-            public void call(Subscriber<? super Bitmap> subscriber) {
-                byte[] imageData = new byte[0];
-                try {
-                    imageData = ((ParseFile) get(IMAGE_FILE)).getData();
-                    Bitmap image = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
-                    subscriber.onNext(image);
-                } catch (ParseException e) {
-                    subscriber.onError(e);
-                }
-                subscriber.onCompleted();
-            }
-        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
+    public String getImageUri() {
+        ParseFile imageFile = (ParseFile) get(IMAGE_FILE);
+        return imageFile.getUrl();
     }
 
     public String getCaption() {
