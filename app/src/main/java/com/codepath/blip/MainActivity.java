@@ -66,12 +66,24 @@ public class MainActivity extends AppCompatActivity implements
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        // Demo saving objects to Parse
-         tempBackendMethod();
-
         // Demo receiving Blips via Behavior Subject
         tempListenForBlipsMethod();
-        mBackendClient.updateBlips();
+        mBackendClient.updateBlips().subscribe(new Subscriber<Boolean>() {
+            @Override
+            public void onCompleted() {
+                // Nothing
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                // Nothing
+            }
+
+            @Override
+            public void onNext(Boolean aBoolean) {
+                Log.d("DEBUG", "FETCHED");
+            }
+        });
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -197,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements
      * Its contents are updated independently.
      */
     private void tempListenForBlipsMethod() {
-        mBackendClient.getNearbyBlipsSubject().observeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<List<Blip>>() {
+        mBackendClient.getNearbyBlipsSubject().subscribe(new Subscriber<List<Blip>>() {
             @Override
             public void onCompleted() {
                 // Nothing
@@ -220,30 +232,5 @@ public class MainActivity extends AppCompatActivity implements
                 }
             }
         });
-    }
-
-    /**
-     * Temp method showing how to interact with Rx and the backend client.
-     */
-    private void tempBackendMethod() {
-        mBackendClient.postTestObjectToParse("Test", "Person", "Male").observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<ParseObject>() {
-                    @Override
-                    public void onCompleted() {
-                        // Nothing
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        Log.e("Error", "Something went horribly wrong while saving", e);
-                    }
-
-                    @Override
-                    public void onNext(ParseObject parseObject) {
-                        // Toast with object id as proof of save.
-                        // Going forward, you'll receive a Blip object. For now, it's a generic Parse Object.
-                        Toast.makeText(MainActivity.this, parseObject.getObjectId(), Toast.LENGTH_LONG).show();
-                    }
-                });
     }
 }
