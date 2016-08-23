@@ -47,7 +47,9 @@ public class Blip extends ParseObject implements ClusterItem {
         put(CAPTION, caption);
         put(UPVOTE, 0);
         put(DOWNVOTE, 0);
-        put(USER, ParseUser.getCurrentUser());
+        if (ParseUser.getCurrentUser() != null) {
+            put(USER, ParseUser.getCurrentUser());
+        }
     }
 
     /**
