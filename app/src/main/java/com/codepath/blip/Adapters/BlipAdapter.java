@@ -65,7 +65,12 @@ public class BlipAdapter extends RecyclerView.Adapter<BlipAdapter.ViewHolder> {
         blipBody.setText(blip.getCaption());
         textUpVotes.setText(blip.getScore());
 
-        Picasso.with(mContext).load(blip.getImageUri()).fit().into(blipImage);
+        String imageUri = blip.getImageUri();
+        if (imageUri != null) {
+            Picasso.with(mContext).load(blip.getImageUri()).fit().into(blipImage);
+        } else {
+            blipImage.setVisibility(View.GONE);
+        }
 
         upVoteButton.setOnClickListener(new View.OnClickListener() {
             @Override
