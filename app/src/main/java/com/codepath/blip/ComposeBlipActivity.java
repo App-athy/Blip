@@ -72,12 +72,12 @@ public class ComposeBlipActivity extends AppCompatActivity {
             public void onClick(View view) {
                 // This needs to be implemented
                 // Use this -> Blip.createBlip()
-                LocationManager service = (LocationManager) getSystemService(LOCATION_SERVICE);
+                /*LocationManager service = (LocationManager) getSystemService(LOCATION_SERVICE);
                 Criteria criteria = new Criteria();
                 String provider = service.getBestProvider(criteria, false);
                 Location location = service.getLastKnownLocation(provider);
                 LatLng userLocation = new LatLng(location.getLatitude(),location.getLongitude());
-                Blip.createBlip(body.getText().toString(), userLocation, byteArray);
+                Blip.createBlip(body.getText().toString(), userLocation, byteArray);*/
                 finish();
             }
         });
