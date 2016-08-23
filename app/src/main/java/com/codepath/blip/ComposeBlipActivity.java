@@ -28,10 +28,18 @@ import com.google.android.gms.maps.model.LatLng;
 import com.parse.ParseGeoPoint;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 import javax.inject.Inject;
+
+import rx.Scheduler;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 
 public class ComposeBlipActivity extends AppCompatActivity {
 
@@ -45,6 +53,7 @@ public class ComposeBlipActivity extends AppCompatActivity {
     public final static int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 1738;
     public final String APP_TAG = "BlipApp";
     private byte[] byteArray;
+    private LatLng mLatLng;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,7 +63,8 @@ public class ComposeBlipActivity extends AppCompatActivity {
         uploadImage = (ImageView) findViewById(R.id.ivImageUpload);
         cameraButton = (Button) findViewById(R.id.cameraButton);
         saveButton = (Button) findViewById(R.id.saveButton);
-
+        Bundle b = getIntent().getParcelableExtra("bundle");
+        mLatLng = b.getParcelable("location");
         cameraButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -72,13 +82,26 @@ public class ComposeBlipActivity extends AppCompatActivity {
             public void onClick(View view) {
                 // This needs to be implemented
                 // Use this -> Blip.createBlip()
-                /*LocationManager service = (LocationManager) getSystemService(LOCATION_SERVICE);
-                Criteria criteria = new Criteria();
-                String provider = service.getBestProvider(criteria, false);
-                Location location = service.getLastKnownLocation(provider);
-                LatLng userLocation = new LatLng(location.getLatitude(),location.getLongitude());
-                Blip.createBlip(body.getText().toString(), userLocation, byteArray);*/
-                finish();
+
+                Blip.createBlip(body.getText().toString(), mLatLng, byteArray)
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(
+                        new Subscriber<Blip>() {
+                            @Override
+                            public void onCompleted() {
+
+                            }
+
+                            @Override
+                            public void onError(Throwable e) {
+                                Toast.makeText(getApplicationContext(), "Uh oh", Toast.LENGTH_SHORT).show();
+                            }
+
+                            @Override
+                            public void onNext(Blip blip) {
+                                finish();
+                            }
+                        });
             }
         });
     }
@@ -92,16 +115,43 @@ public class ComposeBlipActivity extends AppCompatActivity {
                 Uri takenPhotoUri = getPhotoFileUri(photoFileName);
                 // by this point we have the camera photo on disk
                 Bitmap takenImage = rotateBitmapOrientation(takenPhotoUri.getPath());
-                int bytes = takenImage.getByteCount();
-                ByteBuffer buffer = ByteBuffer.allocate(bytes);
-                takenImage.copyPixelsToBuffer(buffer);
-                byteArray = buffer.array();
-                // Load the taken image into a preview
-                uploadImage.setImageBitmap(takenImage);
+                OutputStream imagefile;
+                try {
+                    imagefile = new FileOutputStream(takenPhotoUri.getPath());
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    imagefile = null;
+                }
+                if (imagefile != null) {
+                    takenImage.compress(Bitmap.CompressFormat.JPEG, 100, imagefile);
+                    takenImage = getResizedBitmap(takenImage, 500);
+                    int bytes = takenImage.getByteCount();
+                    ByteBuffer buffer = ByteBuffer.allocate(bytes);
+                    takenImage.copyPixelsToBuffer(buffer);
+                    byteArray = buffer.array();
+                    // Load the taken image into a preview
+                    uploadImage.setImageBitmap(takenImage);
+                }
             } else { // Result was a failure
                 Toast.makeText(this, "Picture wasn't taken!", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    public Bitmap getResizedBitmap(Bitmap image, int maxSize) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+
+        float bitmapRatio = (float) width / (float) height;
+        if (bitmapRatio > 1) {
+            width = maxSize;
+            height = (int) (width / bitmapRatio);
+        } else {
+            height = maxSize;
+            width = (int) (height * bitmapRatio);
+        }
+
+        return Bitmap.createScaledBitmap(image, width, height, true);
     }
 
     public Uri getPhotoFileUri(String fileName) {

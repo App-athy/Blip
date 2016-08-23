@@ -78,6 +78,9 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onClick(View view) {
                 Intent i = new Intent(MainActivity.this, ComposeBlipActivity.class);
+                Bundle b = new Bundle();
+                b.putParcelable("location", mLatLng);
+                i.putExtra("bundle", b);
                 startActivityForResult(i, 2);
             }
         });
