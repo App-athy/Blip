@@ -5,6 +5,9 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Environment;
@@ -21,10 +24,12 @@ import android.widget.Toast;
 
 import com.codepath.blip.clients.BackendClient;
 import com.codepath.blip.models.Blip;
+import com.google.android.gms.maps.model.LatLng;
 import com.parse.ParseGeoPoint;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import javax.inject.Inject;
 
@@ -39,6 +44,7 @@ public class ComposeBlipActivity extends AppCompatActivity {
     public String photoFileName = "blipphoto.jpg";
     public final static int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 1738;
     public final String APP_TAG = "BlipApp";
+    private byte[] byteArray;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +72,13 @@ public class ComposeBlipActivity extends AppCompatActivity {
             public void onClick(View view) {
                 // This needs to be implemented
                 // Use this -> Blip.createBlip()
+                /*LocationManager service = (LocationManager) getSystemService(LOCATION_SERVICE);
+                Criteria criteria = new Criteria();
+                String provider = service.getBestProvider(criteria, false);
+                Location location = service.getLastKnownLocation(provider);
+                LatLng userLocation = new LatLng(location.getLatitude(),location.getLongitude());
+                Blip.createBlip(body.getText().toString(), userLocation, byteArray);*/
+                finish();
             }
         });
     }
@@ -79,6 +92,10 @@ public class ComposeBlipActivity extends AppCompatActivity {
                 Uri takenPhotoUri = getPhotoFileUri(photoFileName);
                 // by this point we have the camera photo on disk
                 Bitmap takenImage = rotateBitmapOrientation(takenPhotoUri.getPath());
+                int bytes = takenImage.getByteCount();
+                ByteBuffer buffer = ByteBuffer.allocate(bytes);
+                takenImage.copyPixelsToBuffer(buffer);
+                byteArray = buffer.array();
                 // Load the taken image into a preview
                 uploadImage.setImageBitmap(takenImage);
             } else { // Result was a failure
