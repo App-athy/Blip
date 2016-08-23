@@ -61,33 +61,6 @@ public class BackendClient {
     }
 
     /**
-     * Posts an object to Parse with three simple fields. Execution is handled on a background io thread.
-     * Note that this a cold observable and won't execute unless you subscribe to it. Will be observed on Main Thread.
-     * @param firstName Random string
-     * @param lastName Random string
-     * @param gender Another random string
-     * @return An Observable which eventually returns a single, fully-formed (with id) Parse object, then completes.
-     */
-    public rx.Observable<ParseObject> postTestObjectToParse(String firstName, String lastName, String gender) {
-        final ParseObject testObject = new ParseObject("Test");
-        testObject.put("First_Name", firstName);
-        testObject.put("Last_Name", lastName);
-        testObject.put("Gender", gender);
-        return rx.Observable.create(new Observable.OnSubscribe<ParseObject>() {
-            @Override
-            public void call(Subscriber<? super ParseObject> subscriber) {
-                try {
-                    testObject.save();
-                    subscriber.onNext(testObject);
-                } catch (ParseException e) {
-                    subscriber.onError(e);
-                }
-                subscriber.onCompleted();
-            }
-        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
-    }
-
-    /**
      * Use to determine whether or not a user is logged into the app. Log-ins are cached onto disk.
      * @return Boolean indicating if a user is logged in.
      */
