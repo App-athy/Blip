@@ -1,5 +1,6 @@
 package com.codepath.blip.models;
 
+import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -10,6 +11,8 @@ import com.parse.ParseFile;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.parse.ParseUser;
+
+import java.io.ByteArrayOutputStream;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -58,13 +61,16 @@ public class Blip extends ParseObject implements ClusterItem {
      * @return An observable which will return a Blip if it was saved, or a ParseException if something went wrong.
      */
     public static rx.Observable<Blip> createBlip(final String caption, @NonNull final LatLng location, @NonNull final
-    byte[] image) {
+    Bitmap image) {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        image.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+        final byte[] imageBytes = stream.toByteArray();
         return rx.Observable.create(new Observable.OnSubscribe<Blip>() {
             @Override
             public void call(Subscriber<? super Blip> subscriber) {
                 try {
                     // Store image on Parse
-                    ParseFile imageFile = new ParseFile("image.jpg", image);
+                    ParseFile imageFile = new ParseFile("image.jpg", imageBytes);
                     imageFile.save();
 
                     // Create geopoint

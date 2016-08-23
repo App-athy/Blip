@@ -1,32 +1,28 @@
 package com.codepath.blip;
 
-import android.app.Application;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
-import android.location.Criteria;
-import android.location.Location;
-import android.location.LocationManager;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.codepath.blip.clients.BackendClient;
 import com.codepath.blip.models.Blip;
 import com.google.android.gms.maps.model.LatLng;
-import com.parse.ParseGeoPoint;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -36,10 +32,8 @@ import java.nio.ByteBuffer;
 
 import javax.inject.Inject;
 
-import rx.Scheduler;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
 
 public class ComposeBlipActivity extends AppCompatActivity {
 
@@ -52,7 +46,7 @@ public class ComposeBlipActivity extends AppCompatActivity {
     public String photoFileName = "blipphoto.jpg";
     public final static int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 1738;
     public final String APP_TAG = "BlipApp";
-    private byte[] byteArray;
+    private Bitmap mPhoto;
     private LatLng mLatLng;
 
     @Override
@@ -80,28 +74,29 @@ public class ComposeBlipActivity extends AppCompatActivity {
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // This needs to be implemented
-                // Use this -> Blip.createBlip()
+                if (mPhoto == null) {
+                    Toast.makeText(ComposeBlipActivity.this, "Take a photo first!", Toast.LENGTH_LONG).show();
+                } else {
+                    Blip.createBlip(body.getText().toString(), mLatLng, mPhoto)
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(
+                                    new Subscriber<Blip>() {
+                                        @Override
+                                        public void onCompleted() {
 
-                Blip.createBlip(body.getText().toString(), mLatLng, byteArray)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(
-                        new Subscriber<Blip>() {
-                            @Override
-                            public void onCompleted() {
+                                        }
 
-                            }
+                                        @Override
+                                        public void onError(Throwable e) {
+                                            Toast.makeText(getApplicationContext(), "Uh oh", Toast.LENGTH_SHORT).show();
+                                        }
 
-                            @Override
-                            public void onError(Throwable e) {
-                                Toast.makeText(getApplicationContext(), "Uh oh", Toast.LENGTH_SHORT).show();
-                            }
-
-                            @Override
-                            public void onNext(Blip blip) {
-                                finish();
-                            }
-                        });
+                                        @Override
+                                        public void onNext(Blip blip) {
+                                            finish();
+                                        }
+                                    });
+                }
             }
         });
     }
@@ -114,24 +109,9 @@ public class ComposeBlipActivity extends AppCompatActivity {
                 uploadImage.setVisibility(View.VISIBLE);
                 Uri takenPhotoUri = getPhotoFileUri(photoFileName);
                 // by this point we have the camera photo on disk
-                Bitmap takenImage = rotateBitmapOrientation(takenPhotoUri.getPath());
-                OutputStream imagefile;
-                try {
-                    imagefile = new FileOutputStream(takenPhotoUri.getPath());
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                    imagefile = null;
-                }
-                if (imagefile != null) {
-                    takenImage.compress(Bitmap.CompressFormat.JPEG, 100, imagefile);
-                    takenImage = getResizedBitmap(takenImage, 500);
-                    int bytes = takenImage.getByteCount();
-                    ByteBuffer buffer = ByteBuffer.allocate(bytes);
-                    takenImage.copyPixelsToBuffer(buffer);
-                    byteArray = buffer.array();
-                    // Load the taken image into a preview
-                    uploadImage.setImageBitmap(takenImage);
-                }
+                mPhoto = getResizedBitmap(rotateBitmapOrientation(takenPhotoUri.getPath()), 500);
+                // Load the taken image into a preview
+                uploadImage.setImageBitmap(mPhoto);
             } else { // Result was a failure
                 Toast.makeText(this, "Picture wasn't taken!", Toast.LENGTH_SHORT).show();
             }
@@ -154,6 +134,7 @@ public class ComposeBlipActivity extends AppCompatActivity {
         return Bitmap.createScaledBitmap(image, width, height, true);
     }
 
+    @Nullable
     public Uri getPhotoFileUri(String fileName) {
         // Only continue if the SD Card is mounted
         if (isExternalStorageAvailable()) {
