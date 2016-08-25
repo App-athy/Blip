@@ -7,14 +7,15 @@ import com.codepath.blip.models.Blip;
 import com.parse.Parse;
 import com.parse.ParseException;
 import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.parse.ParseUser;
 import com.parse.interceptors.ParseLogInterceptor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import rx.Observable;
 import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 import rx.subjects.BehaviorSubject;
 
@@ -42,49 +43,21 @@ public class BackendClient {
     }
 
     /**
-     * Returns the BehaviorSubject for nearby Blips. Treat this as you would a regular observable.
+     * Returns the Observable for nearby Blips, configured to observe on the Main Thread.
      * Note that this is a HOT observable, and will immediately return the last published value on subscribe.
-     * @return BehaviorSubject which publishes nearby Blips.
+     * @return Observable which publishes lists of nearby Blips.
      */
-    public BehaviorSubject<List<Blip>> getNearbyBlipsSubject() {
-        return mNearbyBlipsSubject;
+    public rx.Observable<List<Blip>> getNearbyBlipsSubject() {
+        return mNearbyBlipsSubject.asObservable().observeOn(AndroidSchedulers.mainThread());
     }
 
     /**
-     * Returns the BehaviorSubject for distant Blips. Treat this as you would a regular observable.
+     * Returns the Observable for distant Blips, configured to observe on the Main Thread.
      * Note that this is a HOT observable, and will immediately return the last published value on subscribe.
-     * @return BehaviorSubject which publishes distant Blips.
+     * @return Observable which publishes lists of distant Blips.
      */
-    public BehaviorSubject<List<Blip>> getDistantBlipsSubject() {
-        return mDistantBlipsSubject;
-    }
-
-    /**
-     * Posts an object to Parse with three simple fields. Execution is handled on a background io thread.
-     * Note that this a cold observable and won't execute unless you subscribe to it.
-     * If you're going to do anything to the UI with the returned value, don't forget to observe on the main thread.
-     * @param firstName Random string
-     * @param lastName Random string
-     * @param gender Another random string
-     * @return An Observable which eventually returns a single, fully-formed (with id) Parse object, then completes.
-     */
-    public rx.Observable<ParseObject> postTestObjectToParse(String firstName, String lastName, String gender) {
-        final ParseObject testObject = new ParseObject("Test");
-        testObject.put("First_Name", firstName);
-        testObject.put("Last_Name", lastName);
-        testObject.put("Gender", gender);
-        return rx.Observable.create(new Observable.OnSubscribe<ParseObject>() {
-            @Override
-            public void call(Subscriber<? super ParseObject> subscriber) {
-                try {
-                    testObject.save();
-                    subscriber.onNext(testObject);
-                } catch (ParseException e) {
-                    subscriber.onError(e);
-                }
-                subscriber.onCompleted();
-            }
-        }).subscribeOn(Schedulers.io());
+    public rx.Observable<List<Blip>> getDistantBlipsSubject() {
+        return mDistantBlipsSubject.asObservable().observeOn(AndroidSchedulers.mainThread());
     }
 
     /**
@@ -121,7 +94,7 @@ public class BackendClient {
                 }
                 subscriber.onCompleted();
             }
-        }).subscribeOn(Schedulers.io());
+        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 
     /**
@@ -144,24 +117,30 @@ public class BackendClient {
                 }
                 subscriber.onCompleted();
             }
-        }).subscribeOn(Schedulers.io());
+        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 
     /**
-     * TEMPORARILY MOCKED OUT
-     * Queries Parse for Blips and updates BOTH behavior subjects.
-     * Use this whenever you want to refresh the Blips.
+     * Refreshes the nearby and distant Blips. Updates the Nearby and Distant Blips Subjects.
+     * This does NOT return the new Blips.
+     * @return An observable which returns a Boolean value indicating if Blips were successfully fetched.
      */
-    public void updateBlips() {
-        // Update nearby Blips
-        List<Blip> fakeNearbyBlips = new ArrayList<>();
-        fakeNearbyBlips.add(new Blip());
-        mNearbyBlipsSubject.onNext(fakeNearbyBlips);
-
-        // Update distant Blips
-        List<Blip> fakeDistantBlips = new ArrayList<>();
-        fakeDistantBlips.add(new Blip());
-        mDistantBlipsSubject.onNext(fakeDistantBlips);
+    public rx.Observable<Boolean> updateBlips() {
+        return rx.Observable.create(new Observable.OnSubscribe<Boolean>() {
+            @Override
+            public void call(Subscriber<? super Boolean> subscriber) {
+                ParseQuery<Blip> query = ParseQuery.getQuery(Blip.class);
+                try {
+                    List<Blip> blips = query.find();
+                    mNearbyBlipsSubject.onNext(blips);
+                    mDistantBlipsSubject.onNext(blips);
+                    subscriber.onNext(true);
+                } catch (ParseException e) {
+                    subscriber.onNext(false);
+                }
+                subscriber.onCompleted();
+            }
+        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 
 }

@@ -1,9 +1,7 @@
 package com.codepath.blip.Adapters;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,10 +11,9 @@ import android.widget.TextView;
 
 import com.codepath.blip.R;
 import com.codepath.blip.models.Blip;
+import com.squareup.picasso.Picasso;
 
 import java.util.List;
-
-import rx.Subscriber;
 
 public class BlipAdapter extends RecyclerView.Adapter<BlipAdapter.ViewHolder> {
 
@@ -68,29 +65,12 @@ public class BlipAdapter extends RecyclerView.Adapter<BlipAdapter.ViewHolder> {
         blipBody.setText(blip.getCaption());
         textUpVotes.setText(blip.getScore());
 
-        blip.getImage().subscribe(new Subscriber<Bitmap>() {
-            @Override
-            public void onCompleted() {
-                // Nothing
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                // Render a giant X or something maybe?
-                blipImage.setVisibility(View.GONE);
-            }
-
-            @Override
-            public void onNext(Bitmap bitmap) {
-                if (bitmap == null) {
-                    // Render a giant X or something maybe?
-                    blipImage.setVisibility(View.GONE);
-                    Log.d("DEBUG", "Unable to decode image data");
-                } else {
-                    blipImage.setImageBitmap(bitmap);
-                }
-            }
-        });
+        String imageUri = blip.getImageUri();
+        if (imageUri != null) {
+            Picasso.with(mContext).load(blip.getImageUri()).fit().into(blipImage);
+        } else {
+            blipImage.setVisibility(View.GONE);
+        }
 
         upVoteButton.setOnClickListener(new View.OnClickListener() {
             @Override

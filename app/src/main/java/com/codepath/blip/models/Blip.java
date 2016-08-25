@@ -1,7 +1,6 @@
 package com.codepath.blip.models;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.support.annotation.NonNull;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -13,9 +12,10 @@ import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.parse.ParseUser;
 
+import java.io.ByteArrayOutputStream;
+
 import rx.Observable;
 import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 /**
@@ -61,13 +61,16 @@ public class Blip extends ParseObject implements ClusterItem {
      * @return An observable which will return a Blip if it was saved, or a ParseException if something went wrong.
      */
     public static rx.Observable<Blip> createBlip(final String caption, @NonNull final LatLng location, @NonNull final
-    byte[] image) {
+    Bitmap image) {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        image.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+        final byte[] imageBytes = stream.toByteArray();
         return rx.Observable.create(new Observable.OnSubscribe<Blip>() {
             @Override
             public void call(Subscriber<? super Blip> subscriber) {
                 try {
                     // Store image on Parse
-                    ParseFile imageFile = new ParseFile("image.jpg", image);
+                    ParseFile imageFile = new ParseFile("image.jpg", imageBytes);
                     imageFile.save();
 
                     // Create geopoint
@@ -87,27 +90,9 @@ public class Blip extends ParseObject implements ClusterItem {
         }).subscribeOn(Schedulers.io());
     }
 
-    /**
-     * Gets the ImageFile from Parse and decodes the bytes into a Bitmap.
-     * Since this is returning an image, I'm assuming that it will always be observed on the Main Thread.
-     * No need to call "oberserveOn(AndroidSchedulers.mainThread())"
-     * @return Bitmap of this Blips image.
-     */
-    public rx.Observable<Bitmap> getImage() {
-        return rx.Observable.create(new Observable.OnSubscribe<Bitmap>() {
-            @Override
-            public void call(Subscriber<? super Bitmap> subscriber) {
-                byte[] imageData = new byte[0];
-                try {
-                    imageData = ((ParseFile) get(IMAGE_FILE)).getData();
-                    Bitmap image = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
-                    subscriber.onNext(image);
-                } catch (ParseException e) {
-                    subscriber.onError(e);
-                }
-                subscriber.onCompleted();
-            }
-        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
+    public String getImageUri() {
+        ParseFile imageFile = (ParseFile) get(IMAGE_FILE);
+        return imageFile.getUrl();
     }
 
     public String getCaption() {
