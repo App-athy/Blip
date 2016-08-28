@@ -34,6 +34,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 
@@ -45,7 +46,8 @@ import rx.Subscriber;
 
 
 public class MainActivity extends AppCompatActivity implements
-        OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, LocationListener, GoogleApiClient.OnConnectionFailedListener {
+        OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, LocationListener, GoogleApiClient.OnConnectionFailedListener,
+        ClusterManager.OnClusterItemClickListener<Blip>, ClusterManager.OnClusterClickListener<Blip> {
     @Inject Application mApplication;
     @Inject BackendClient mBackendClient;
 
@@ -265,5 +267,24 @@ public class MainActivity extends AppCompatActivity implements
             // Cache t
             markerOptions.icon(blipBitmap);
         }
+
+        @Override
+        protected boolean shouldRenderAsCluster(Cluster<Blip> cluster) {
+            // start clustering if at least 2 items overlap
+            return cluster.getSize() > 1;
+        }
+    }
+
+
+    @Override
+    public boolean onClusterClick(Cluster<Blip> cluster) {
+        // Does nothing, but this should expand the cluster.
+        return true;
+    }
+
+    @Override
+    public boolean onClusterItemClick(Blip item) {
+        // Does nothing, but this should open a Blip view.
+        return false;
     }
 }
