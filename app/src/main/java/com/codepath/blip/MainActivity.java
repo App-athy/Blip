@@ -4,6 +4,8 @@ import android.Manifest;
 import android.app.Application;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -26,10 +28,14 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.clustering.ClusterManager;
+import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 
 import java.util.List;
 
@@ -47,6 +53,11 @@ public class MainActivity extends AppCompatActivity implements
     private ClusterManager<Blip> mClusterManager;
     private LocationRequest mLocationRequest;
     private LatLng mLatLng;
+
+    public GoogleMap getMap() {
+        return mMap;
+    }
+
     private GoogleMap mMap;
     private GoogleApiClient mClient;
     private final int MY_LOCATION_REQUEST_CODE = 101;
@@ -133,6 +144,7 @@ public class MainActivity extends AppCompatActivity implements
         // Initialize the manager with the context and the map.
         // (Activity extends context, so we can pass 'this' in the constructor.)
         mClusterManager = new ClusterManager<Blip>(this, mMap);
+        mClusterManager.setRenderer(new BlipRenderer());
 
         // Point the map's listeners at the listeners implemented by the cluster
         // manager.
@@ -233,5 +245,25 @@ public class MainActivity extends AppCompatActivity implements
                 }
             }
         });
+    }
+
+    // Clustering
+
+    private class BlipRenderer extends DefaultClusterRenderer<Blip> {
+        private BitmapDescriptor blipBitmap;
+        private final int mDimension = 150;
+
+        public BlipRenderer() {
+            super(getApplicationContext(), getMap(), mClusterManager);
+            Bitmap blipIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_blip1);
+            blipIcon = Bitmap.createScaledBitmap(blipIcon, mDimension, mDimension, false);
+            blipBitmap = BitmapDescriptorFactory.fromBitmap(blipIcon);
+        }
+
+        @Override
+        protected void onBeforeClusterItemRendered(Blip blip, MarkerOptions markerOptions) {
+            // Cache t
+            markerOptions.icon(blipBitmap);
+        }
     }
 }
