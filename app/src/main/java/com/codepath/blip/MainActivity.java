@@ -4,6 +4,8 @@ import android.Manifest;
 import android.app.Application;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -26,10 +28,15 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterManager;
+import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 
 import java.util.List;
 
@@ -39,7 +46,8 @@ import rx.Subscriber;
 
 
 public class MainActivity extends AppCompatActivity implements
-        OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, LocationListener, GoogleApiClient.OnConnectionFailedListener {
+        OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, LocationListener, GoogleApiClient.OnConnectionFailedListener,
+        ClusterManager.OnClusterItemClickListener<Blip>, ClusterManager.OnClusterClickListener<Blip> {
     @Inject Application mApplication;
     @Inject BackendClient mBackendClient;
 
@@ -47,6 +55,11 @@ public class MainActivity extends AppCompatActivity implements
     private ClusterManager<Blip> mClusterManager;
     private LocationRequest mLocationRequest;
     private LatLng mLatLng;
+
+    public GoogleMap getMap() {
+        return mMap;
+    }
+
     private GoogleMap mMap;
     private GoogleApiClient mClient;
     private final int MY_LOCATION_REQUEST_CODE = 101;
@@ -112,7 +125,7 @@ public class MainActivity extends AppCompatActivity implements
     public void onMapReady(GoogleMap googleMap) {
         // Set up default map view preferences
         mMap = googleMap;
-        mMap.setMinZoomPreference(17.0f);
+        mMap.setMinZoomPreference(16.0f);
 
         // Make sure location is enabled
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -133,6 +146,7 @@ public class MainActivity extends AppCompatActivity implements
         // Initialize the manager with the context and the map.
         // (Activity extends context, so we can pass 'this' in the constructor.)
         mClusterManager = new ClusterManager<Blip>(this, mMap);
+        mClusterManager.setRenderer(new BlipRenderer());
 
         // Point the map's listeners at the listeners implemented by the cluster
         // manager.
@@ -162,12 +176,12 @@ public class MainActivity extends AppCompatActivity implements
     public void onLocationChanged(Location location) {
         double lat = location.getLatitude();
         double lng = location.getLongitude();
-        double boundsEpsilon = 0.001;
+        double boundsEpsilon = 0.0025;
         mLatLng = new LatLng(lat, lng);
 
         //zoom to current position:
         CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(mLatLng).zoom(17).build();
+                .target(mLatLng).zoom(16f).build();
 
         mMap.animateCamera(CameraUpdateFactory
                 .newCameraPosition(cameraPosition));
@@ -226,14 +240,51 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onNext(List<Blip> blips) {
                 if (blips != null) {
-
-                    // uncomment when there is real location data
-//                    for (Blip blip : blips) {
-//                        mClusterManager.addItem(blip);
-//                    }
+                    mClusterManager.clearItems();
+                    mClusterManager.addItems(blips);
+                    mClusterManager.cluster();
                     Toast.makeText(MainActivity.this, "Got a list of nearby Blips!", Toast.LENGTH_LONG).show();
                 }
             }
         });
+    }
+
+    // Clustering
+
+    private class BlipRenderer extends DefaultClusterRenderer<Blip> {
+        private BitmapDescriptor blipBitmap;
+        private final int mDimension = 150;
+
+        public BlipRenderer() {
+            super(getApplicationContext(), getMap(), mClusterManager);
+            Bitmap blipIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_blip1);
+            blipIcon = Bitmap.createScaledBitmap(blipIcon, mDimension, mDimension, false);
+            blipBitmap = BitmapDescriptorFactory.fromBitmap(blipIcon);
+        }
+
+        @Override
+        protected void onBeforeClusterItemRendered(Blip blip, MarkerOptions markerOptions) {
+            // Cache t
+            markerOptions.icon(blipBitmap);
+        }
+
+        @Override
+        protected boolean shouldRenderAsCluster(Cluster<Blip> cluster) {
+            // start clustering if at least 2 items overlap
+            return cluster.getSize() > 1;
+        }
+    }
+
+
+    @Override
+    public boolean onClusterClick(Cluster<Blip> cluster) {
+        // Does nothing, but this should expand the cluster.
+        return true;
+    }
+
+    @Override
+    public boolean onClusterItemClick(Blip item) {
+        // Does nothing, but this should open a Blip view.
+        return false;
     }
 }
