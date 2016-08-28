@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements
     public void onMapReady(GoogleMap googleMap) {
         // Set up default map view preferences
         mMap = googleMap;
-        mMap.setMinZoomPreference(17.0f);
+        mMap.setMinZoomPreference(16.0f);
 
         // Make sure location is enabled
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -162,12 +162,12 @@ public class MainActivity extends AppCompatActivity implements
     public void onLocationChanged(Location location) {
         double lat = location.getLatitude();
         double lng = location.getLongitude();
-        double boundsEpsilon = 0.001;
+        double boundsEpsilon = 0.0025;
         mLatLng = new LatLng(lat, lng);
 
         //zoom to current position:
         CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(mLatLng).zoom(17).build();
+                .target(mLatLng).zoom(16f).build();
 
         mMap.animateCamera(CameraUpdateFactory
                 .newCameraPosition(cameraPosition));
@@ -226,11 +226,9 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onNext(List<Blip> blips) {
                 if (blips != null) {
-
-                    // uncomment when there is real location data
-//                    for (Blip blip : blips) {
-//                        mClusterManager.addItem(blip);
-//                    }
+                    mClusterManager.clearItems();
+                    mClusterManager.addItems(blips);
+                    mClusterManager.cluster();
                     Toast.makeText(MainActivity.this, "Got a list of nearby Blips!", Toast.LENGTH_LONG).show();
                 }
             }

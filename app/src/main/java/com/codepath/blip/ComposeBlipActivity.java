@@ -22,13 +22,8 @@ import com.codepath.blip.clients.BackendClient;
 import com.codepath.blip.models.Blip;
 import com.google.android.gms.maps.model.LatLng;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
 
 import javax.inject.Inject;
 
@@ -70,14 +65,14 @@ public class ComposeBlipActivity extends AppCompatActivity {
                 }
             }
         });
-
+        final LatLng temp = new LatLng(37.779327, -122.418779);
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (mPhoto == null) {
                     Toast.makeText(ComposeBlipActivity.this, "Take a photo first!", Toast.LENGTH_LONG).show();
                 } else {
-                    Blip.createBlip(body.getText().toString(), mLatLng, mPhoto)
+                    Blip.createBlip(body.getText().toString(), temp, mPhoto)
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(
                                     new Subscriber<Blip>() {
