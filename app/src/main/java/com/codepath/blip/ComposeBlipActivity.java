@@ -65,14 +65,13 @@ public class ComposeBlipActivity extends AppCompatActivity {
                 }
             }
         });
-        final LatLng temp = new LatLng(37.779327, -122.418779);
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (mPhoto == null) {
                     Toast.makeText(ComposeBlipActivity.this, "Take a photo first!", Toast.LENGTH_LONG).show();
                 } else {
-                    Blip.createBlip(body.getText().toString(), temp, mPhoto)
+                    Blip.createBlip(body.getText().toString(), mLatLng, mPhoto)
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(
                                     new Subscriber<Blip>() {
