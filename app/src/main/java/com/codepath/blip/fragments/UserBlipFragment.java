@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.codepath.blip.BlipApplication;
 import com.codepath.blip.clients.BackendClient;
 import com.codepath.blip.models.Blip;
 
@@ -24,6 +25,8 @@ public class UserBlipFragment extends BlipListFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ((BlipApplication) getActivity().getApplication()).getAppComponent().inject(this);
+
         populateBlips();
     }
 

@@ -1,5 +1,6 @@
 package com.codepath.blip;
 
+import com.codepath.blip.fragments.UserBlipFragment;
 import com.codepath.blip.modules.BackendModule;
 
 import javax.inject.Singleton;
@@ -16,4 +17,5 @@ import dagger.Component;
 public interface AppComponent {
     void inject(MainActivity activity);
     void inject(LoginActivity activity);
+    void inject(UserBlipFragment fragment);
 }
