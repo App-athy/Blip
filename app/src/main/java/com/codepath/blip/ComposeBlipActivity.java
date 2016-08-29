@@ -72,7 +72,6 @@ public class ComposeBlipActivity extends AppCompatActivity {
                     Toast.makeText(ComposeBlipActivity.this, "Take a photo first!", Toast.LENGTH_LONG).show();
                 } else {
                     Blip.createBlip(body.getText().toString(), mLatLng, mPhoto)
-                            .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(
                                     new Subscriber<Blip>() {
                                         @Override
@@ -82,7 +81,7 @@ public class ComposeBlipActivity extends AppCompatActivity {
 
                                         @Override
                                         public void onError(Throwable e) {
-                                            Toast.makeText(getApplicationContext(), "Uh oh", Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
                                         }
 
                                         @Override

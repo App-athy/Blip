@@ -16,6 +16,7 @@ import java.io.ByteArrayOutputStream;
 
 import rx.Observable;
 import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 /**
@@ -87,7 +88,7 @@ public class Blip extends ParseObject implements ClusterItem {
                 }
                 subscriber.onCompleted();
             }
-        }).subscribeOn(Schedulers.io());
+        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 
     public String getImageUri() {
