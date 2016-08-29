@@ -300,7 +300,7 @@ public class MainActivity extends AppCompatActivity implements
 
         public BlipRenderer() {
             super(getApplicationContext(), getMap(), mClusterManager);
-            Bitmap blipIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_blip1);
+            Bitmap blipIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_blip2);
             blipIcon = Bitmap.createScaledBitmap(blipIcon, mDimension, mDimension, false);
             blipBitmap = BitmapDescriptorFactory.fromBitmap(blipIcon);
         }
