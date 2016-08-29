@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements
     @Inject BackendClient mBackendClient;
 
     private static final int MY_LOCATION_REQUEST_CODE = 101;
+    private static final int LOGIN_REQUEST_CODE = 102;
     private static final double BOUNDS_EPSILON = 0.0025;
 
     private ClusterManager<Blip> mClusterManager;
@@ -73,10 +74,31 @@ public class MainActivity extends AppCompatActivity implements
         ((BlipApplication) getApplication()).getAppComponent().inject(this);
         setContentView(R.layout.activity_main);
 
+        if (!mBackendClient.isUserLoggedIn()) {
+            launchLoginActivity();
+        } else {
+            initializeApplication();
+        }
+    }
+
+    /**
+     * Calls methods required to start the Blips application. Designed to be called from onCreate if user is already
+     * logged in, or onActivityResult after the user logs in or registers through the log-in activity.
+     */
+    private void initializeApplication() {
         configureMap();
         subscribeToBlips();
         updateBlips();
         createFloatingActionButton();
+    }
+
+    /**
+     * Launches activity to request user login or registration. Will not allow user to see the rest of the app unless
+     * logged in. onActivityResult will loop repeatedly into this activity if login is not successful.
+     */
+    private void launchLoginActivity() {
+        Intent i = new Intent(MainActivity.this, LoginActivity.class);
+        startActivityForResult(i, LOGIN_REQUEST_CODE);
     }
 
     /**
@@ -307,6 +329,21 @@ public class MainActivity extends AppCompatActivity implements
     public boolean onClusterItemClick(Blip item) {
         // Does nothing, but this should open a Blip view.
         return false;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == LOGIN_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
+                initializeApplication();
+            } else {
+                // Force user to login by repeatedly launching the activity until it returns successfully.
+                // Ideally, we'd have some sort of home page or other intermediate screen to send them to rather than
+                // just popping the same activity up again and again.
+                launchLoginActivity();
+            }
+        }
     }
 
     @Override
