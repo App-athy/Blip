@@ -180,7 +180,7 @@ public class BackendClient {
                 }
                 subscriber.onCompleted();
             }
-        });
+        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 
     /**
