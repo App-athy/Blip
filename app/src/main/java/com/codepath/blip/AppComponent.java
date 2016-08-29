@@ -15,4 +15,5 @@ import dagger.Component;
 @Component(modules = {BackendModule.class})
 public interface AppComponent {
     void inject(MainActivity activity);
+    void inject(LoginActivity activity);
 }
