@@ -63,7 +63,7 @@ public class BlipAdapter extends RecyclerView.Adapter<BlipAdapter.ViewHolder> {
         TextView textUpVotes = holder.upvotes;
 
         blipBody.setText(blip.getCaption());
-        textUpVotes.setText(blip.getScore());
+        //textUpVotes.setText(blip.getScore());
 
         String imageUri = blip.getImageUri();
         if (imageUri != null) {
