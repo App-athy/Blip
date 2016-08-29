@@ -60,20 +60,18 @@ public class BackendClient {
     }
 
     /**
-     * Sign up a new user. Requires a UNIQUE email and username. Caches sign-in to disk.
+     * Sign up a new user. Requires a UNIQUE username. Caches sign-in to disk.
      * Will throw a ParseException if either username or email is already taken.
      * Be prepared to catch this in your subscriber and respond accordingly.
      * Note that this a cold observable and won't execute unless you subscribe to it.
      * @param username A unique string for a publicly visibly username.
      * @param password A password - the Parse SDK will hash this before sending it off.
-     * @param email A unique email.
      * @return An observable that will either return the newly registered user, or throw a ParseException if unable to register the user.
      */
-    public rx.Observable<ParseUser> registerNewUser(String username, String password, String email) {
+    public rx.Observable<ParseUser> registerNewUser(String username, String password) {
         final ParseUser user = new ParseUser();
         user.setUsername(username);
         user.setPassword(password);
-        user.setEmail(email);
         return rx.Observable.create(new Observable.OnSubscribe<ParseUser>() {
             @Override
             public void call(Subscriber<? super ParseUser> subscriber) {
