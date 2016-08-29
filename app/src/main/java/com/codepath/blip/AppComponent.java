@@ -1,6 +1,5 @@
 package com.codepath.blip;
 
-import com.codepath.blip.modules.AppModule;
 import com.codepath.blip.modules.BackendModule;
 
 import javax.inject.Singleton;
@@ -13,7 +12,7 @@ import dagger.Component;
  * Date: 8/17/16
  */
 @Singleton
-@Component(modules = {AppModule.class, BackendModule.class})
+@Component(modules = {BackendModule.class})
 public interface AppComponent {
     void inject(MainActivity activity);
 }

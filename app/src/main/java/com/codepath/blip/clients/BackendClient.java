@@ -4,8 +4,10 @@ import android.content.Context;
 
 import com.codepath.blip.R;
 import com.codepath.blip.models.Blip;
+import com.google.android.gms.maps.model.LatLng;
 import com.parse.Parse;
 import com.parse.ParseException;
+import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
@@ -26,7 +28,6 @@ import rx.subjects.BehaviorSubject;
  */
 public class BackendClient {
     private BehaviorSubject<List<Blip>> mNearbyBlipsSubject;
-    private BehaviorSubject<List<Blip>> mDistantBlipsSubject;
 
     /**
      * Initialize Parse and the Blips BehaviorSubjects.
@@ -39,7 +40,6 @@ public class BackendClient {
                 .addNetworkInterceptor(new ParseLogInterceptor())
                 .server(applicationContext.getResources().getString(R.string.parse_url)).build());
         mNearbyBlipsSubject = BehaviorSubject.create();
-        mDistantBlipsSubject = BehaviorSubject.create();
     }
 
     /**
@@ -49,15 +49,6 @@ public class BackendClient {
      */
     public rx.Observable<List<Blip>> getNearbyBlipsSubject() {
         return mNearbyBlipsSubject.asObservable().observeOn(AndroidSchedulers.mainThread());
-    }
-
-    /**
-     * Returns the Observable for distant Blips, configured to observe on the Main Thread.
-     * Note that this is a HOT observable, and will immediately return the last published value on subscribe.
-     * @return Observable which publishes lists of distant Blips.
-     */
-    public rx.Observable<List<Blip>> getDistantBlipsSubject() {
-        return mDistantBlipsSubject.asObservable().observeOn(AndroidSchedulers.mainThread());
     }
 
     /**
@@ -121,7 +112,7 @@ public class BackendClient {
     }
 
     /**
-     * Refreshes the nearby and distant Blips. Updates the Nearby and Distant Blips Subjects.
+     * Refreshes the nearby and distant Blips. Updates the NearbyBlipsSubject. Returns ALL blips.
      * This does NOT return the new Blips.
      * @return An observable which returns a Boolean value indicating if Blips were successfully fetched.
      */
@@ -133,7 +124,35 @@ public class BackendClient {
                 try {
                     List<Blip> blips = query.find();
                     mNearbyBlipsSubject.onNext(blips);
-                    mDistantBlipsSubject.onNext(blips);
+                    subscriber.onNext(true);
+                } catch (ParseException e) {
+                    subscriber.onNext(false);
+                }
+                subscriber.onCompleted();
+            }
+        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
+    }
+
+    /**
+     * Refreshes the nearby and distant Blips. Updates the NearbyBlipsSubject based on the location and range provided.
+     * Fetches Blips withing a SQUARE based on the values provided.
+     * This does NOT return the new Blips.
+     * @param location A LatLng representing the CENTER of the area to query.
+     * @param range The lat/lng range to query on either side of the center. Ex: Providing a Lat of 120.00 and a
+     * range of 0.10 will result in a query encompassing Lat values of 119.90 - 120.10.
+     * @return An observable which returns a Boolean value indicating if Blips were successfully fetched.
+     */
+    public rx.Observable<Boolean> updateBlips(final LatLng location, final double range) {
+        return rx.Observable.create(new Observable.OnSubscribe<Boolean>() {
+            @Override
+            public void call(Subscriber<? super Boolean> subscriber) {
+                ParseQuery<Blip> query = ParseQuery.getQuery(Blip.class);
+                ParseGeoPoint swCorner = new ParseGeoPoint(location.latitude - range, location.longitude - range);
+                ParseGeoPoint neCorner = new ParseGeoPoint(location.latitude + range, location.longitude + range);
+                query.whereWithinGeoBox(Blip.LOCATION, swCorner, neCorner);
+                try {
+                    List<Blip> blips = query.find();
+                    mNearbyBlipsSubject.onNext(blips);
                     subscriber.onNext(true);
                 } catch (ParseException e) {
                     subscriber.onNext(false);

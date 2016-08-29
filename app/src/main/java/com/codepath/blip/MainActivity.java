@@ -1,7 +1,6 @@
 package com.codepath.blip;
 
 import android.Manifest;
-import android.app.Application;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -43,18 +42,21 @@ import java.util.List;
 import javax.inject.Inject;
 
 import rx.Subscriber;
+import rx.Subscription;
 
 
 public class MainActivity extends AppCompatActivity implements
         OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, LocationListener, GoogleApiClient.OnConnectionFailedListener,
         ClusterManager.OnClusterItemClickListener<Blip>, ClusterManager.OnClusterClickListener<Blip> {
-    @Inject Application mApplication;
     @Inject BackendClient mBackendClient;
 
+    private static final int MY_LOCATION_REQUEST_CODE = 101;
+    private static final double BOUNDS_EPSILON = 0.0025;
 
     private ClusterManager<Blip> mClusterManager;
     private LocationRequest mLocationRequest;
     private LatLng mLatLng;
+    private Subscription mNearbyBlips;
 
     public GoogleMap getMap() {
         return mMap;
@@ -62,7 +64,6 @@ public class MainActivity extends AppCompatActivity implements
 
     private GoogleMap mMap;
     private GoogleApiClient mClient;
-    private final int MY_LOCATION_REQUEST_CODE = 101;
 
     private boolean didSetMapBounds = false;
 
@@ -72,15 +73,40 @@ public class MainActivity extends AppCompatActivity implements
         ((BlipApplication) getApplication()).getAppComponent().inject(this);
         setContentView(R.layout.activity_main);
 
-        // Set up map
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        configureMap();
+        subscribeToBlips();
+        updateBlips();
+        createFloatingActionButton();
+    }
 
-        // Demo receiving Blips via Behavior Subject
-        // REMOVE THIS ONCE YOU'RE READY TO ACTUALLY USE BLIPS
-        tempListenForBlipsMethod();
-        mBackendClient.updateBlips().subscribe(new Subscriber<Boolean>() {
+    /**
+     * Create FAB and assign onClick handler. This FAB will open the ComposeBlipActivity to allow users to create a
+     * new Blip.
+     */
+    private void createFloatingActionButton() {
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(MainActivity.this, ComposeBlipActivity.class);
+                Bundle b = new Bundle();
+                b.putParcelable("location", mLatLng);
+                i.putExtra("bundle", b);
+                startActivityForResult(i, 2);
+            }
+        });
+    }
+
+    /**
+     * Signals the backend client to update the NearbyBlipsSubject based on the current location and BOUNDS_EPSILON.
+     * If mLatLng is not set, this method does nothing.
+     * The updateBlips subscription should handle the successful or unsuccessful update of blips.
+     */
+    private void updateBlips() {
+        if (mLatLng == null) {
+            return;
+        }
+        mBackendClient.updateBlips(mLatLng, BOUNDS_EPSILON).subscribe(new Subscriber<Boolean>() {
             @Override
             public void onCompleted() {
                 // Nothing
@@ -100,16 +126,42 @@ public class MainActivity extends AppCompatActivity implements
                 }
             }
         });
+    }
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+    /**
+     * Retrieve and set up the main map for the application.
+     */
+    private void configureMap() {
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+    }
+
+    /**
+     * Initializes Blips subscription. Configures the callback which occurs when the current list of nearby Blips is
+     * updated. We also store the subscription here so we can un-subscribe when the activity ends to prevent a memory
+     * leak.
+     */
+    private void subscribeToBlips() {
+        mNearbyBlips = mBackendClient.getNearbyBlipsSubject().subscribe(new Subscriber<List<Blip>>() {
             @Override
-            public void onClick(View view) {
-                Intent i = new Intent(MainActivity.this, ComposeBlipActivity.class);
-                Bundle b = new Bundle();
-                b.putParcelable("location", mLatLng);
-                i.putExtra("bundle", b);
-                startActivityForResult(i, 2);
+            public void onCompleted() {
+                // Nothing
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Log.e("Error", "Something went horribly wrong while getting nearby Blips", e);
+            }
+
+            @Override
+            public void onNext(List<Blip> blips) {
+                if (blips != null) {
+                    mClusterManager.clearItems();
+                    mClusterManager.addItems(blips);
+                    mClusterManager.cluster();
+                    Toast.makeText(MainActivity.this, "Got a list of nearby Blips!", Toast.LENGTH_LONG).show();
+                }
             }
         });
     }
@@ -139,9 +191,7 @@ public class MainActivity extends AppCompatActivity implements
         // Set up client for my location
         mClient = getGoogleApiClient();
 
-        if (mClient != null) {
-            mClient.connect();
-        }
+        mClient.connect();
 
         // Initialize the manager with the context and the map.
         // (Activity extends context, so we can pass 'this' in the constructor.)
@@ -176,7 +226,6 @@ public class MainActivity extends AppCompatActivity implements
     public void onLocationChanged(Location location) {
         double lat = location.getLatitude();
         double lng = location.getLongitude();
-        double boundsEpsilon = 0.0025;
         mLatLng = new LatLng(lat, lng);
 
         //zoom to current position:
@@ -188,12 +237,13 @@ public class MainActivity extends AppCompatActivity implements
 
         if (!didSetMapBounds) {
             LatLngBounds region = new LatLngBounds(
-                    new LatLng(lat - boundsEpsilon, lng - boundsEpsilon),
-                    new LatLng(lat + boundsEpsilon, lng + boundsEpsilon));
+                    new LatLng(lat - BOUNDS_EPSILON, lng - BOUNDS_EPSILON),
+                    new LatLng(lat + BOUNDS_EPSILON, lng + BOUNDS_EPSILON));
             // Constrain the camera target
             mMap.setLatLngBoundsForCameraTarget(region);
             didSetMapBounds = true;
         }
+        updateBlips();
 
         // unregister the listener after first location for now, do moving location later
         LocationServices.FusedLocationApi.removeLocationUpdates(mClient, this);
@@ -218,35 +268,6 @@ public class MainActivity extends AppCompatActivity implements
         } else {
             Log.e("Error", "Location permission denied");
         }
-    }
-
-    /**
-     * Temp method showing how to listen to Blips from a BehaviorSubject.
-     * Note that unlike cold observables, a BehaviorSubject doesn't do anything special when something subscribes.
-     * Its contents are updated independently.
-     */
-    private void tempListenForBlipsMethod() {
-        mBackendClient.getNearbyBlipsSubject().subscribe(new Subscriber<List<Blip>>() {
-            @Override
-            public void onCompleted() {
-                // Nothing
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                Log.e("Error", "Something went horribly wrong while getting nearby Blips", e);
-            }
-
-            @Override
-            public void onNext(List<Blip> blips) {
-                if (blips != null) {
-                    mClusterManager.clearItems();
-                    mClusterManager.addItems(blips);
-                    mClusterManager.cluster();
-                    Toast.makeText(MainActivity.this, "Got a list of nearby Blips!", Toast.LENGTH_LONG).show();
-                }
-            }
-        });
     }
 
     // Clustering
@@ -286,5 +307,13 @@ public class MainActivity extends AppCompatActivity implements
     public boolean onClusterItemClick(Blip item) {
         // Does nothing, but this should open a Blip view.
         return false;
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mNearbyBlips != null) {
+            mNearbyBlips.unsubscribe();
+        }
     }
 }

@@ -27,8 +27,8 @@ import rx.schedulers.Schedulers;
 @ParseClassName("Blip")
 public class Blip extends ParseObject implements ClusterItem {
     // Keys for object attributes
+    public static final String LOCATION = "LOCATION";
     private static final String IMAGE_FILE = "IMAGE_FILE";
-    private static final String LOCATION = "LOCATION";
     private static final String CAPTION = "CAPTION";
     private static final String USER = "USER";
     private static final String UPVOTE = "UPVOTE";
