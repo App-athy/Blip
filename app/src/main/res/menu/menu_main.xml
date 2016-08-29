@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<tools:menu xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            tools:context="com.codepath.apps.blip.TimelineActivity">
+
+    <item
+        android:id="@+id/miProfile"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/ic_blip1"
+        android:title="Profile"
+        android:onClick="onProfileView"
+        ></item>
+</tools:menu>

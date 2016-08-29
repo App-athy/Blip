@@ -12,7 +12,10 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
@@ -73,6 +76,8 @@ public class MainActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         ((BlipApplication) getApplication()).getAppComponent().inject(this);
         setContentView(R.layout.activity_main);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
         if (!mBackendClient.isUserLoggedIn()) {
             launchLoginActivity();
@@ -117,6 +122,12 @@ public class MainActivity extends AppCompatActivity implements
                 startActivityForResult(i, 2);
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
     }
 
     /**
@@ -352,5 +363,10 @@ public class MainActivity extends AppCompatActivity implements
         if (mNearbyBlips != null) {
             mNearbyBlips.unsubscribe();
         }
+    }
+
+    public void onProfileView(MenuItem mi) {
+        Intent i = new Intent(this, ProfileActivity.class);
+        startActivity(i);
     }
 }

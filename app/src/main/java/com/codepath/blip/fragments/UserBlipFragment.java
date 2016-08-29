@@ -6,11 +6,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.codepath.blip.BlipApplication;
-import com.codepath.blip.EndlessRecyclerViewScrollListener;
 import com.codepath.blip.clients.BackendClient;
+import com.codepath.blip.models.Blip;
+
+import java.util.List;
 
 import javax.inject.Inject;
+
+import rx.Observable;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
 
 public class UserBlipFragment extends BlipListFragment {
 
@@ -19,7 +24,7 @@ public class UserBlipFragment extends BlipListFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        populateBlips(25);
+        populateBlips();
     }
 
     @Nullable
@@ -29,17 +34,31 @@ public class UserBlipFragment extends BlipListFragment {
 
         View v = super.onCreateView(inflater, container, savedInstanceState);
 
-        rvBlips.addOnScrollListener(new EndlessRecyclerViewScrollListener(layoutManager) {
-            @Override
-            public void onLoadMore(int page, int totalItemsCount) {
-                populateBlips(totalItemsCount + 25);
-            }
-        });
-
         return v;
     }
 
-    private void populateBlips(int numberOfBlips) {
-        int x = 3;
+    private void populateBlips() {
+        Observable<List<Blip>> blipListObservable = mBackendClient.getBlipsForUser();
+        blipListObservable.observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Subscriber<List<Blip>>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+
+                    }
+
+                    @Override
+                    public void onNext(List<Blip> blips) {
+                        addBlips(blips);
+                    }
+                });
+    }
+
+    private void addBlips(List<Blip> blips) {
+        super.addAll(blips);
     }
 }
