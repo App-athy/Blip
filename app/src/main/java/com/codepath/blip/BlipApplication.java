@@ -2,7 +2,6 @@ package com.codepath.blip;
 
 import android.app.Application;
 
-import com.codepath.blip.modules.AppModule;
 import com.codepath.blip.modules.BackendModule;
 
 /**
@@ -18,7 +17,6 @@ public class BlipApplication extends Application {
     public void onCreate() {
         super.onCreate();
         mAppComponent = DaggerAppComponent.builder()
-                .appModule(new AppModule(this))
                 .backendModule(new BackendModule(this))
                 .build();
     }
