@@ -162,4 +162,39 @@ public class BackendClient {
         }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 
+    /**
+     * Retrieves all of the Blips posted by the provided user.
+     * @param user User for which to retrieve history of Blips.
+     * @return An observable which returns the user's list of Blips, in descending chronological order, then exits.
+     */
+    public rx.Observable<List<Blip>> getBlipsForUser(final ParseUser user) {
+        return rx.Observable.create(new Observable.OnSubscribe<List<Blip>>() {
+            @Override
+            public void call(Subscriber<? super List<Blip>> subscriber) {
+                ParseQuery<Blip> query = ParseQuery.getQuery(Blip.class);
+                query.whereEqualTo(Blip.USER, user);
+                query.orderByDescending("_created_at");
+                try {
+                    List<Blip> blips = query.find();
+                    subscriber.onNext(blips);
+                } catch (ParseException e) {
+                    subscriber.onError(e);
+                }
+                subscriber.onCompleted();
+            }
+        });
+    }
+
+    /**
+     * Retrieves all of the Blips posted by the currently logged-in user.
+     * If no user is logged in, this will throw an IllegalStateException.
+     * @return An observable which returns the user's list of Blips, in descending chronological order, then exits.
+     */
+    public rx.Observable<List<Blip>> getBlipsForUser() {
+        if (ParseUser.getCurrentUser() == null) {
+            throw new IllegalStateException("No currently logged in user");
+        }
+        return getBlipsForUser(ParseUser.getCurrentUser());
+    }
+
 }
