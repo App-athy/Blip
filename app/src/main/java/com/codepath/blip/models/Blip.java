@@ -121,15 +121,41 @@ public class Blip extends ParseObject implements ClusterItem {
     public int getDownVotes() {
         return getInt(DOWNVOTE);
     }
+    
+    public rx.Observable<Blip> upvoteBlip() {
+        final Blip self = this;
+        return Observable.create(new Observable.OnSubscribe<Blip>() {
+            @Override
+            public void call(Subscriber<? super Blip> subscriber) {
+                increment(UPVOTE);
+                try {
+                    save();
+                    subscriber.onNext(self);
+                } catch (ParseException e) {
+                    subscriber.onError(e);
+                }
+                subscriber.onCompleted();
 
-    public void upVoteBlip() {
-        increment(UPVOTE);
-        saveInBackground();
+            }
+        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 
-    public void downVoteBlip() {
-        increment(DOWNVOTE);
-        saveInBackground();
+    public rx.Observable<Blip> downvoteBlip() {
+        final Blip self = this;
+        return Observable.create(new Observable.OnSubscribe<Blip>() {
+            @Override
+            public void call(Subscriber<? super Blip> subscriber) {
+                increment(DOWNVOTE);
+                try {
+                    save();
+                    subscriber.onNext(self);
+                } catch (ParseException e) {
+                    subscriber.onError(e);
+                }
+                subscriber.onCompleted();
+
+            }
+        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 
 }
