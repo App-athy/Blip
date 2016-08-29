@@ -16,6 +16,7 @@ import dagger.Component;
 @Component(modules = {BackendModule.class})
 public interface AppComponent {
     void inject(MainActivity activity);
+    void inject(UserBlipFragment fragment);
     void inject(LoginActivity activity);
     void inject(UserBlipFragment fragment);
 }
