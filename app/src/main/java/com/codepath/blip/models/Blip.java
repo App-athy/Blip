@@ -13,6 +13,7 @@ import com.parse.ParseObject;
 import com.parse.ParseUser;
 
 import java.io.ByteArrayOutputStream;
+import java.io.Serializable;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -26,7 +27,7 @@ import rx.schedulers.Schedulers;
  */
 
 @ParseClassName("Blip")
-public class Blip extends ParseObject implements ClusterItem {
+public class Blip extends ParseObject implements ClusterItem, Serializable {
     // Keys for object attributes
     public static final String LOCATION = "LOCATION";
     public static final String USER = "USER";

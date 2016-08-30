@@ -40,6 +40,7 @@ import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -230,6 +231,8 @@ public class MainActivity extends AppCompatActivity implements
         // (Activity extends context, so we can pass 'this' in the constructor.)
         mClusterManager = new ClusterManager<Blip>(this, mMap);
         mClusterManager.setRenderer(new BlipRenderer());
+        mClusterManager.setOnClusterClickListener(this);
+        mClusterManager.setOnClusterItemClickListener(this);
 
         // Point the map's listeners at the listeners implemented by the cluster
         // manager.
@@ -332,13 +335,15 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public boolean onClusterClick(Cluster<Blip> cluster) {
-        // Does nothing, but this should expand the cluster.
+        Intent i = new Intent(MainActivity.this, ViewBlipsActivity.class);
+        startActivity(i);
         return true;
     }
 
     @Override
     public boolean onClusterItemClick(Blip item) {
-        // Does nothing, but this should open a Blip view.
+        Intent i = new Intent(MainActivity.this, ViewBlipsActivity.class);
+        startActivity(i);
         return false;
     }
 
