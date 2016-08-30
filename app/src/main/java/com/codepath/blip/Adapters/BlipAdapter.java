@@ -8,12 +8,15 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.codepath.blip.R;
 import com.codepath.blip.models.Blip;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
+
+import rx.Subscriber;
 
 public class BlipAdapter extends RecyclerView.Adapter<BlipAdapter.ViewHolder> {
 
@@ -60,7 +63,7 @@ public class BlipAdapter extends RecyclerView.Adapter<BlipAdapter.ViewHolder> {
         final ImageView blipImage = holder.image;
         ImageButton upVoteButton = holder.voteUp;
         ImageButton downVoteButton = holder.voteDown;
-        TextView textUpVotes = holder.upvotes;
+        final TextView textUpVotes = holder.upvotes;
 
         blipBody.setText(blip.getCaption());
         textUpVotes.setText(String.format("%d", blip.getScore()));
@@ -74,15 +77,45 @@ public class BlipAdapter extends RecyclerView.Adapter<BlipAdapter.ViewHolder> {
 
         upVoteButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                blip.upVoteBlip();
+            public void onClick(final View view) {
+                blip.upvoteBlip().subscribe(new Subscriber<Blip>() {
+                    @Override
+                    public void onCompleted() {
+                        // Nothing
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Toast.makeText(view.getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    public void onNext(Blip blip) {
+                        textUpVotes.setText(String.format("%d", blip.getScore()));
+                    }
+                });
             }
         });
 
         downVoteButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                blip.downVoteBlip();
+            public void onClick(final View view) {
+                blip.downvoteBlip().subscribe(new Subscriber<Blip>() {
+                    @Override
+                    public void onCompleted() {
+                        // Nothing
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Toast.makeText(view.getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+
+                    @Override
+                    public void onNext(Blip blip) {
+                        textUpVotes.setText(String.format("%d", blip.getScore()));
+                    }
+                });
             }
         });
     }
