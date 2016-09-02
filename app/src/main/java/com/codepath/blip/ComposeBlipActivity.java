@@ -28,7 +28,6 @@ import java.io.IOException;
 import javax.inject.Inject;
 
 import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
 
 public class ComposeBlipActivity extends AppCompatActivity {
 
@@ -49,22 +48,13 @@ public class ComposeBlipActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_compose_blip);
         body = (EditText) findViewById(R.id.etBody);
+
         uploadImage = (ImageView) findViewById(R.id.ivImageUpload);
-        cameraButton = (Button) findViewById(R.id.cameraButton);
+        uploadImage.setImageResource(R.drawable.placeholder);
+
         saveButton = (Button) findViewById(R.id.saveButton);
         Bundle b = getIntent().getParcelableExtra("bundle");
         mLatLng = b.getParcelable("location");
-        cameraButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, getPhotoFileUri(photoFileName));
-                if (intent.resolveActivity(getPackageManager()) != null) {
-                    // Start the image capture intent to take photo
-                    startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
-                }
-            }
-        });
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -94,12 +84,19 @@ public class ComposeBlipActivity extends AppCompatActivity {
         });
     }
 
+    public void onCameraClick(View v) {
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, getPhotoFileUri(photoFileName));
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            // Start the image capture intent to take photo
+            startActivityForResult(intent, CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE);
+        }
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE) {
             if (resultCode == RESULT_OK) {
-                cameraButton.setVisibility(View.GONE);
-                uploadImage.setVisibility(View.VISIBLE);
                 Uri takenPhotoUri = getPhotoFileUri(photoFileName);
                 // by this point we have the camera photo on disk
                 mPhoto = getResizedBitmap(rotateBitmapOrientation(takenPhotoUri.getPath()), 500);
