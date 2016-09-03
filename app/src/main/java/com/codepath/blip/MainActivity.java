@@ -22,6 +22,7 @@ import android.widget.Toast;
 
 import com.codepath.blip.clients.BackendClient;
 import com.codepath.blip.fragments.BlipListFragment;
+import com.codepath.blip.fragments.UserBlipFragment;
 import com.codepath.blip.models.Blip;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -375,7 +376,8 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     public void onProfileView(MenuItem mi) {
-        Intent i = new Intent(this, ProfileActivity.class);
-        startActivity(i);
+        FragmentManager fm = getSupportFragmentManager();
+        UserBlipFragment blipListDialogFragment = UserBlipFragment.newInstance();
+        blipListDialogFragment.show(fm, "fragment_blip_list");
     }
 }
