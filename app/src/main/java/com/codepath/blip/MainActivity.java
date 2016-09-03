@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -20,6 +21,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.codepath.blip.clients.BackendClient;
+import com.codepath.blip.fragments.BlipListFragment;
 import com.codepath.blip.models.Blip;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -335,15 +337,17 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public boolean onClusterClick(Cluster<Blip> cluster) {
-        Intent i = new Intent(MainActivity.this, ViewBlipsActivity.class);
-        startActivity(i);
+        FragmentManager fm = getSupportFragmentManager();
+        BlipListFragment blipListDialogFragment = BlipListFragment.newInstance();
+        blipListDialogFragment.show(fm, "fragment_blip_list");
         return true;
     }
 
     @Override
     public boolean onClusterItemClick(Blip item) {
-        Intent i = new Intent(MainActivity.this, ViewBlipsActivity.class);
-        startActivity(i);
+        FragmentManager fm = getSupportFragmentManager();
+        BlipListFragment blipListDialogFragment = BlipListFragment.newInstance();
+        blipListDialogFragment.show(fm, "fragment_blip_list");
         return false;
     }
 
