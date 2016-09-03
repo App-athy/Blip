@@ -6,6 +6,8 @@
     <color name="black">#000000</color>
     <color name="white">#ffffff</color>
     <color name="gray">#e1e1e1</color>
+    <color name="mediumgray">#a7a7a7</color>
+    <color name="darkgray">#515151</color>
     <color name="mint">#8bd6bb</color>
     <color name="coral">#ff7262</color>
 </resources>
