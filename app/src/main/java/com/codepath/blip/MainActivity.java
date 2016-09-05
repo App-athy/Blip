@@ -22,7 +22,6 @@ import android.widget.Toast;
 
 import com.codepath.blip.clients.BackendClient;
 import com.codepath.blip.fragments.BlipListFragment;
-import com.codepath.blip.fragments.UserBlipFragment;
 import com.codepath.blip.models.Blip;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -43,7 +42,6 @@ import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -59,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements
 
     private static final int MY_LOCATION_REQUEST_CODE = 101;
     private static final int LOGIN_REQUEST_CODE = 102;
+    private static final int CREATE_BLIP_REQUEST_CODE = 103;
     private static final double BOUNDS_EPSILON = 0.0025;
 
     private ClusterManager<Blip> mClusterManager;
@@ -123,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements
                 Bundle b = new Bundle();
                 b.putParcelable("location", mLatLng);
                 i.putExtra("bundle", b);
-                startActivityForResult(i, 2);
+                startActivityForResult(i, CREATE_BLIP_REQUEST_CODE);
             }
         });
     }
@@ -156,9 +155,7 @@ public class MainActivity extends AppCompatActivity implements
 
             @Override
             public void onNext(Boolean aBoolean) {
-                if (aBoolean) {
-                    Toast.makeText(MainActivity.this, "Fetched new Blips!", Toast.LENGTH_LONG).show();
-                } else {
+                if (!aBoolean) {
                     Toast.makeText(MainActivity.this, "Failed to fetch new Blips!", Toast.LENGTH_LONG).show();
                 }
             }
@@ -197,7 +194,6 @@ public class MainActivity extends AppCompatActivity implements
                     mClusterManager.clearItems();
                     mClusterManager.addItems(blips);
                     mClusterManager.cluster();
-                    Toast.makeText(MainActivity.this, "Got a list of nearby Blips!", Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -248,7 +244,6 @@ public class MainActivity extends AppCompatActivity implements
     @SuppressWarnings("MissingPermission")
     @Override
     public void onConnected(Bundle bundle) {
-        Toast.makeText(this,"onConnected",Toast.LENGTH_SHORT).show();
         Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mClient);
 
@@ -339,7 +334,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public boolean onClusterClick(Cluster<Blip> cluster) {
         FragmentManager fm = getSupportFragmentManager();
-        BlipListFragment blipListDialogFragment = BlipListFragment.newInstance();
+        BlipListFragment blipListDialogFragment = BlipListFragment.newInstance(cluster.getItems());
         blipListDialogFragment.show(fm, "fragment_blip_list");
         return true;
     }
@@ -347,7 +342,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public boolean onClusterItemClick(Blip item) {
         FragmentManager fm = getSupportFragmentManager();
-        BlipListFragment blipListDialogFragment = BlipListFragment.newInstance();
+        BlipListFragment blipListDialogFragment = BlipListFragment.newInstance(item);
         blipListDialogFragment.show(fm, "fragment_blip_list");
         return false;
     }
@@ -364,6 +359,8 @@ public class MainActivity extends AppCompatActivity implements
                 // just popping the same activity up again and again.
                 launchLoginActivity();
             }
+        } else if (requestCode == CREATE_BLIP_REQUEST_CODE && resultCode == RESULT_OK) {
+            updateBlips();
         }
     }
 
@@ -376,8 +373,23 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     public void onProfileView(MenuItem mi) {
-        FragmentManager fm = getSupportFragmentManager();
-        UserBlipFragment blipListDialogFragment = UserBlipFragment.newInstance();
-        blipListDialogFragment.show(fm, "fragment_blip_list");
+        mBackendClient.getBlipsForUser().subscribe(new Subscriber<List<Blip>>() {
+            @Override
+            public void onCompleted() {
+                // Nothing
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                Toast.makeText(MainActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onNext(List<Blip> blips) {
+                FragmentManager fm = getSupportFragmentManager();
+                BlipListFragment blipListDialogFragment = BlipListFragment.newInstance(blips);
+                blipListDialogFragment.show(fm, "fragment_blip_list");
+            }
+        });
     }
 }
