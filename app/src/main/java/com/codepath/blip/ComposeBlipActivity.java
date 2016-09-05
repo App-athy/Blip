@@ -76,6 +76,7 @@ public class ComposeBlipActivity extends AppCompatActivity {
 
                                         @Override
                                         public void onNext(Blip blip) {
+                                            setResult(RESULT_OK);
                                             finish();
                                         }
                                     });
@@ -99,6 +100,7 @@ public class ComposeBlipActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 Uri takenPhotoUri = getPhotoFileUri(photoFileName);
                 // by this point we have the camera photo on disk
+                assert takenPhotoUri != null;
                 mPhoto = getResizedBitmap(rotateBitmapOrientation(takenPhotoUri.getPath()), 500);
                 // Load the taken image into a preview
                 uploadImage.setImageBitmap(mPhoto);

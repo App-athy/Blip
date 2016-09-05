@@ -2,6 +2,7 @@ package com.codepath.blip.models;
 
 import android.graphics.Bitmap;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.clustering.ClusterItem;
@@ -10,10 +11,13 @@ import com.parse.ParseException;
 import com.parse.ParseFile;
 import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
 import java.io.ByteArrayOutputStream;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -159,4 +163,29 @@ public class Blip extends ParseObject implements ClusterItem, Serializable {
         }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
 
+    /**
+     * Given a list of known object ids, returns a list of Blips from cache.
+     * @param objectIds List of known ids to be hydrated
+     * @return List of Blips matching th ids passed in
+     */
+    public static rx.Observable<List<Blip>> fromIdList(final List<String> objectIds) {
+        return Observable.create(new Observable.OnSubscribe<List<Blip>>() {
+            @Override
+            public void call(Subscriber<? super List<Blip>> subscriber) {
+                List<Blip> blips = new ArrayList<>();
+                for (String objectId : objectIds) {
+                    ParseQuery<Blip> query = ParseQuery.getQuery(Blip.class);
+                    query.setCachePolicy(ParseQuery.CachePolicy.CACHE_ELSE_NETWORK);
+                    try {
+                        blips.add(query.get(objectId));
+                    } catch (ParseException e) {
+                        // Failed to retrieve a blip for some reason.
+                        Log.e("Blip Retrieval Failure", "Failed to get a blip which should have been cached", e);
+                    }
+                }
+                subscriber.onNext(blips);
+                subscriber.onCompleted();
+            }
+        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
+    }
 }
