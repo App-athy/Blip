@@ -1,5 +1,9 @@
 package com.codepath.blip.fragments;
 
+import android.app.Dialog;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.support.v4.app.DialogFragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -15,7 +19,6 @@ import com.codepath.blip.BlipApplication;
 import com.codepath.blip.R;
 import com.codepath.blip.clients.BackendClient;
 import com.codepath.blip.models.Blip;
-import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +29,7 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 
-public class BlipListFragment extends Fragment{
+public class BlipListFragment extends DialogFragment {
 
     @Inject BackendClient mBackendClient;
 
@@ -35,16 +38,24 @@ public class BlipListFragment extends Fragment{
     protected RecyclerView rvBlips;
     protected LinearLayoutManager layoutManager;
 
+    public BlipListFragment() { }
+
+    public static BlipListFragment newInstance() {
+        BlipListFragment frag = new BlipListFragment();
+        return frag;
+    }
+
+
     @Nullable
     @Override
     public View onCreateView(
             LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_blip_list, container, false);
-        rvBlips = (RecyclerView) v.findViewById(R.id.rvTweets);
+        rvBlips = (RecyclerView) v.findViewById(R.id.rvBlips);
         rvBlips.setAdapter(mAdapter);
         rvBlips.setLayoutManager(layoutManager);
         Bundle b = getActivity().getIntent().getParcelableExtra("bundle");
-
+        getDialog().getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         return v;
     }
 
@@ -76,7 +87,7 @@ public class BlipListFragment extends Fragment{
 
                     @Override
                     public void onError(Throwable e) {
-                        Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
 
                     @Override

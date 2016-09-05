@@ -1,6 +1,7 @@
 package com.codepath.blip.Adapters;
 
 import android.content.Context;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,16 +27,16 @@ public class BlipAdapter extends RecyclerView.Adapter<BlipAdapter.ViewHolder> {
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView body;
         public TextView upvotes;
-        public ImageButton voteUp;
-        public ImageButton voteDown;
+        public FloatingActionButton voteUp;
+        public FloatingActionButton voteDown;
         public ImageView image;
 
         public ViewHolder(View itemView) {
             super(itemView);
             body = (TextView) itemView.findViewById(R.id.tvBlipBody);
             upvotes = (TextView) itemView.findViewById(R.id.tvUpvotes);
-            voteUp = (ImageButton) itemView.findViewById(R.id.upvoteButton);
-            voteDown = (ImageButton) itemView.findViewById(R.id.downvoteButton);
+            voteUp = (FloatingActionButton) itemView.findViewById(R.id.upvoteButton);
+            voteDown = (FloatingActionButton) itemView.findViewById(R.id.downvoteButton);
             image = (ImageView) itemView.findViewById(R.id.blipImageView);
         }
     }
@@ -61,16 +62,15 @@ public class BlipAdapter extends RecyclerView.Adapter<BlipAdapter.ViewHolder> {
 
         TextView blipBody = holder.body;
         final ImageView blipImage = holder.image;
-        ImageButton upVoteButton = holder.voteUp;
-        ImageButton downVoteButton = holder.voteDown;
+        FloatingActionButton upVoteButton = holder.voteUp;
+        FloatingActionButton downVoteButton = holder.voteDown;
         final TextView textUpVotes = holder.upvotes;
-
         blipBody.setText(blip.getCaption());
         textUpVotes.setText(String.format("%d", blip.getScore()));
 
         String imageUri = blip.getImageUri();
         if (imageUri != null) {
-            Picasso.with(mContext).load(blip.getImageUri()).fit().into(blipImage);
+            Picasso.with(mContext).load(blip.getImageUri()).fit().placeholder(R.drawable.placeholder).into(blipImage);
         } else {
             blipImage.setVisibility(View.GONE);
         }

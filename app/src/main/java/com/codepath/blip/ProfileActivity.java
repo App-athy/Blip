@@ -1,5 +1,6 @@
 package com.codepath.blip;
 
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -15,9 +16,10 @@ public class ProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_profile);
         if(savedInstanceState == null) {
             UserBlipFragment userTimelineFragment = new UserBlipFragment();
-            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            ft.replace(R.id.flProfileContainer, userTimelineFragment);
-            ft.commit();
+
+            FragmentManager fm = getSupportFragmentManager();
+            UserBlipFragment blipListDialogFragment = UserBlipFragment.newInstance();
+            blipListDialogFragment.show(fm, "fragment_blip_list");
         }
     }
 }

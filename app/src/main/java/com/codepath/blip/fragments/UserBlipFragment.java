@@ -23,6 +23,13 @@ public class UserBlipFragment extends BlipListFragment {
 
     @Inject BackendClient mBackendClient;
 
+
+    public UserBlipFragment() { }
+
+    public static UserBlipFragment newInstance() {
+        UserBlipFragment frag = new UserBlipFragment();
+        return frag;
+    }
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
