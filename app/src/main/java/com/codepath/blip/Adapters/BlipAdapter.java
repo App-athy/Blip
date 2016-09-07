@@ -70,10 +70,12 @@ public class BlipAdapter extends RecyclerView.Adapter<BlipAdapter.ViewHolder> {
 
         String imageUri = blip.getImageUri();
         if (imageUri != null) {
-            Picasso.with(mContext).load(blip.getImageUri()).fit().placeholder(R.drawable.placeholder).into(blipImage);
+            Picasso.with(mContext).load(blip.getImageUri()).fit().centerCrop().placeholder(R.drawable.placeholder).into(blipImage);
         } else {
             blipImage.setVisibility(View.GONE);
         }
+
+        upVoteButton.se
 
         upVoteButton.setOnClickListener(new View.OnClickListener() {
             @Override
