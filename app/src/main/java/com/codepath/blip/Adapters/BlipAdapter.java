@@ -75,8 +75,6 @@ public class BlipAdapter extends RecyclerView.Adapter<BlipAdapter.ViewHolder> {
             blipImage.setVisibility(View.GONE);
         }
 
-        upVoteButton.se
-
         upVoteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View view) {
