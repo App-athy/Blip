@@ -33,6 +33,7 @@ public class ComposeBlipActivity extends AppCompatActivity {
 
     @Inject BackendClient mBackendClient;
 
+    public final static String INTENT_BLIP = "INTENT_BLIP";
     private EditText body;
     private ImageView uploadImage;
     private Button cameraButton;
@@ -76,7 +77,9 @@ public class ComposeBlipActivity extends AppCompatActivity {
 
                                         @Override
                                         public void onNext(Blip blip) {
-                                            setResult(RESULT_OK);
+                                            Intent data = new Intent();
+                                            data.putExtra(INTENT_BLIP, blip.getUuid());
+                                            setResult(RESULT_OK, data);
                                             finish();
                                         }
                                     });

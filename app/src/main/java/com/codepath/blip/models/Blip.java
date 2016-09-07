@@ -188,4 +188,20 @@ public class Blip extends ParseObject implements ClusterItem, Serializable {
             }
         }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
     }
+
+    public static rx.Observable<Blip> fromId(final String objectId) {
+        return Observable.create(new Observable.OnSubscribe<Blip>() {
+            @Override
+            public void call(Subscriber<? super Blip> subscriber) {
+                ParseQuery<Blip> query = ParseQuery.getQuery(Blip.class);
+                query.setCachePolicy(ParseQuery.CachePolicy.CACHE_ELSE_NETWORK);
+                try {
+                    subscriber.onNext(query.get(objectId));
+                } catch (ParseException e) {
+                    // Failed to retrieve a blip for some reason.
+                    Log.e("Blip Retrieval Failure", "Failed to get a blip which should have been cached", e);
+                }
+            }
+        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread());
+    }
 }

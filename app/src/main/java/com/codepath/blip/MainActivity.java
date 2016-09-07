@@ -360,7 +360,24 @@ public class MainActivity extends AppCompatActivity implements
                 launchLoginActivity();
             }
         } else if (requestCode == CREATE_BLIP_REQUEST_CODE && resultCode == RESULT_OK) {
-            updateBlips();
+            String objectId = data.getStringExtra(ComposeBlipActivity.INTENT_BLIP);
+            Blip.fromId(objectId).subscribe(new Subscriber<Blip>() {
+                @Override
+                public void onCompleted() {
+                    // Nothing
+                }
+
+                @Override
+                public void onError(Throwable e) {
+                    // Nothing
+                }
+
+                @Override
+                public void onNext(Blip blip) {
+                    mClusterManager.addItem(blip);
+                    mClusterManager.cluster();
+                }
+            });
         }
     }
 
